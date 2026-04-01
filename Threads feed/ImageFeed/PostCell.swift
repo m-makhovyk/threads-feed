@@ -6,7 +6,7 @@ class PostCell: UICollectionViewCell {
 
   static let reuseIdentifier = "PostCell"
 
-  var onImageTapped: ((URL) -> Void)? {
+  var onImageTapped: ((_ urls: [URL], _ index: Int) -> Void)? {
     get { attachmentsView.onImageTapped }
     set { attachmentsView.onImageTapped = newValue }
   }

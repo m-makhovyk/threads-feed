@@ -7,7 +7,7 @@ class ImageAttachmentsView: UIView {
   // 16 (cell padding) + 40 (avatar) + 10 (gap)
   static let leadingInset: CGFloat = 16 + 40 + 10
 
-  var onImageTapped: ((URL) -> Void)?
+  var onImageTapped: ((_ urls: [URL], _ index: Int) -> Void)?
 
   private let scrollView = UIScrollView()
   private let stackView = UIStackView()
@@ -77,8 +77,7 @@ class ImageAttachmentsView: UIView {
 
   @objc private func imageTapped(_ gesture: UITapGestureRecognizer) {
     guard let view = gesture.view else { return }
-    let url = urls[view.tag]
-    onImageTapped?(url)
+    onImageTapped?(urls, view.tag)
   }
 
   private func makePlaceholder() -> UIView {

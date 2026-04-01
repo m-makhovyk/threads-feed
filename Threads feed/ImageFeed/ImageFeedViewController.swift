@@ -61,8 +61,8 @@ extension ImageFeedViewController: UICollectionViewDataSource {
       for: indexPath
     ) as! PostCell
     cell.configure(with: posts[indexPath.item])
-    cell.onImageTapped = { [weak self] url in
-      let preview = ImagePreviewViewController(imageURL: url)
+    cell.onImageTapped = { [weak self] urls, index in
+      let preview = ImagePreviewViewController(imageURLs: urls, initialIndex: index)
       self?.present(preview, animated: true)
     }
     return cell

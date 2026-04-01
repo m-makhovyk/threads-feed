@@ -1,12 +1,24 @@
 import UIKit
 import SnapKit
-import Nuke
 
 class ImagePreviewViewController: UIViewController {
 
-  private let imageURL: URL
-  private let scrollView = UIScrollView()
-  private let imageView = UIImageView()
+  private let imageURLs: [URL]
+  private let initialIndex: Int
+  private var hasScrolledToInitialPage = false
+
+  private lazy var collectionView: UICollectionView = {
+    let layout = UICollectionViewFlowLayout()
+    layout.scrollDirection = .horizontal
+    layout.minimumLineSpacing = 0
+    layout.minimumInteritemSpacing = 0
+    let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+    cv.isPagingEnabled = true
+    cv.showsHorizontalScrollIndicator = false
+    cv.backgroundColor = .black
+    cv.register(ZoomableImageCell.self, forCellWithReuseIdentifier: ZoomableImageCell.reuseID)
+    return cv
+  }()
 
   private let closeButton: UIButton = {
     let button = UIButton(type: .system)
@@ -19,8 +31,9 @@ class ImagePreviewViewController: UIViewController {
     return button
   }()
 
-  init(imageURL: URL) {
-    self.imageURL = imageURL
+  init(imageURLs: [URL], initialIndex: Int) {
+    self.imageURLs = imageURLs
+    self.initialIndex = initialIndex
     super.init(nibName: nil, bundle: nil)
     modalPresentationStyle = .fullScreen
   }
@@ -33,25 +46,11 @@ class ImagePreviewViewController: UIViewController {
     super.viewDidLoad()
     view.backgroundColor = .black
 
-    scrollView.delegate = self
-    scrollView.minimumZoomScale = 1.0
-    scrollView.maximumZoomScale = 4.0
-    scrollView.showsHorizontalScrollIndicator = false
-    scrollView.showsVerticalScrollIndicator = false
-    scrollView.frame = view.bounds
-    scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    view.addSubview(scrollView)
-
-    imageView.contentMode = .scaleAspectFit
-    imageView.frame = scrollView.bounds
-    imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    scrollView.addSubview(imageView)
-
-    ImagePipeline.shared.loadImage(with: imageURL) { [weak self] result in
-      if case .success(let response) = result {
-        self?.imageView.image = response.image
-      }
-    }
+    collectionView.frame = view.bounds
+    collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    collectionView.dataSource = self
+    collectionView.delegate = self
+    view.addSubview(collectionView)
 
     view.addSubview(closeButton)
     closeButton.snp.makeConstraints { make in
@@ -63,6 +62,14 @@ class ImagePreviewViewController: UIViewController {
     closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
   }
 
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    guard !hasScrolledToInitialPage, initialIndex > 0, collectionView.bounds.width > 0 else { return }
+    hasScrolledToInitialPage = true
+    let offset = CGFloat(initialIndex) * collectionView.bounds.width
+    collectionView.contentOffset = CGPoint(x: offset, y: 0)
+  }
+
   override var prefersStatusBarHidden: Bool {
     true
   }
@@ -72,28 +79,35 @@ class ImagePreviewViewController: UIViewController {
   }
 }
 
-extension ImagePreviewViewController: UIScrollViewDelegate {
+extension ImagePreviewViewController: UICollectionViewDataSource {
 
-  func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-    imageView
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    imageURLs.count
   }
 
-  func scrollViewDidZoom(_ scrollView: UIScrollView) {
-    let offsetX = max((scrollView.bounds.width - scrollView.contentSize.width) / 2, 0)
-    let offsetY = max((scrollView.bounds.height - scrollView.contentSize.height) / 2, 0)
-    imageView.center = CGPoint(
-      x: scrollView.contentSize.width / 2 + offsetX,
-      y: scrollView.contentSize.height / 2 + offsetY
-    )
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: ZoomableImageCell.reuseID,
+      for: indexPath
+    ) as! ZoomableImageCell
+    cell.configure(with: imageURLs[indexPath.item])
+    return cell
   }
+}
 
-  func scrollViewDidEndZooming(
-    _ scrollView: UIScrollView,
-    with view: UIView?,
-    atScale scale: CGFloat
-  ) {
-    UIView.animate(withDuration: 0.25) {
-      scrollView.zoomScale = 1.0
-    }
+extension ImagePreviewViewController: UICollectionViewDelegateFlowLayout {
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
+    collectionView.bounds.size
   }
 }
