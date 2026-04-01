@@ -1,14 +1,14 @@
 import UIKit
 import SnapKit
 
-class ViewController: UIViewController {
+class VideoFeedViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
 
     let label = UILabel()
-    label.text = "Threads Feed"
+    label.text = "Video Feed"
     label.font = .systemFont(ofSize: 24, weight: .bold)
     view.addSubview(label)
 

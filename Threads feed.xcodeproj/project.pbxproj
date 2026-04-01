@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		038B76132F7D05E700970515 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 03DF22802F7C56CB00C04237 /* SnapKit */; };
+		038B76142F7D05E700970515 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 03DF22822F7C56CB00C04237 /* Nuke */; };
+		038B76152F7D05E700970515 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 03DF22832F7C56CB00C04237 /* NukeUI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		03DF22682F7C56CA00C04237 /* Threads feed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Threads feed.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +42,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				038B76152F7D05E700970515 /* NukeUI in Frameworks */,
+				038B76142F7D05E700970515 /* Nuke in Frameworks */,
+				038B76132F7D05E700970515 /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -110,14 +119,14 @@
 			);
 			mainGroup = 03DF225F2F7C56CA00C04237;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
-			productRefGroup = 03DF22692F7C56CA00C04237 /* Products */;
-			projectDirPath = "";
-			projectRoot = "";
 			packageReferences = (
 				03DF22812F7C56CB00C04237 /* XCRemoteSwiftPackageReference "SnapKit" */,
 				03DF22842F7C56CB00C04237 /* XCRemoteSwiftPackageReference "Nuke" */,
 			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 03DF22692F7C56CA00C04237 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				03DF22672F7C56CA00C04237 /* Threads feed */,
 			);
