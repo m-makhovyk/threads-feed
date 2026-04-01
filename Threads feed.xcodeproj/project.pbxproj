@@ -79,6 +79,8 @@
 			name = "Threads feed";
 			packageProductDependencies = (
 				03DF22802F7C56CB00C04237 /* SnapKit */,
+				03DF22822F7C56CB00C04237 /* Nuke */,
+				03DF22832F7C56CB00C04237 /* NukeUI */,
 			);
 			productName = "Threads feed";
 			productReference = 03DF22682F7C56CA00C04237 /* Threads feed.app */;
@@ -114,6 +116,7 @@
 			projectRoot = "";
 			packageReferences = (
 				03DF22812F7C56CB00C04237 /* XCRemoteSwiftPackageReference "SnapKit" */,
+				03DF22842F7C56CB00C04237 /* XCRemoteSwiftPackageReference "Nuke" */,
 			);
 			targets = (
 				03DF22672F7C56CA00C04237 /* Threads feed */,
@@ -355,6 +358,14 @@
 				minimumVersion = 5.7.1;
 			};
 		};
+		03DF22842F7C56CB00C04237 /* XCRemoteSwiftPackageReference "Nuke" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/Nuke.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.8.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -362,6 +373,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 03DF22812F7C56CB00C04237 /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
+		};
+		03DF22822F7C56CB00C04237 /* Nuke */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 03DF22842F7C56CB00C04237 /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = Nuke;
+		};
+		03DF22832F7C56CB00C04237 /* NukeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 03DF22842F7C56CB00C04237 /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = NukeUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
