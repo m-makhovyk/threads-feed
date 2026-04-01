@@ -5,6 +5,7 @@ import Nuke
 class ImagePreviewViewController: UIViewController {
 
   private let imageURL: URL
+  private let scrollView = UIScrollView()
   private let imageView = UIImageView()
 
   private let closeButton: UIButton = {
@@ -32,15 +33,25 @@ class ImagePreviewViewController: UIViewController {
     super.viewDidLoad()
     view.backgroundColor = .black
 
+    scrollView.delegate = self
+    scrollView.minimumZoomScale = 1.0
+    scrollView.maximumZoomScale = 4.0
+    scrollView.showsHorizontalScrollIndicator = false
+    scrollView.showsVerticalScrollIndicator = false
+    scrollView.frame = view.bounds
+    scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    view.addSubview(scrollView)
+
     imageView.contentMode = .scaleAspectFit
+    imageView.frame = scrollView.bounds
     imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    imageView.frame = view.bounds
+    scrollView.addSubview(imageView)
+
     ImagePipeline.shared.loadImage(with: imageURL) { [weak self] result in
       if case .success(let response) = result {
         self?.imageView.image = response.image
       }
     }
-    view.addSubview(imageView)
 
     view.addSubview(closeButton)
     closeButton.snp.makeConstraints { make in
@@ -58,5 +69,31 @@ class ImagePreviewViewController: UIViewController {
 
   @objc private func closeTapped() {
     dismiss(animated: true)
+  }
+}
+
+extension ImagePreviewViewController: UIScrollViewDelegate {
+
+  func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+    imageView
+  }
+
+  func scrollViewDidZoom(_ scrollView: UIScrollView) {
+    let offsetX = max((scrollView.bounds.width - scrollView.contentSize.width) / 2, 0)
+    let offsetY = max((scrollView.bounds.height - scrollView.contentSize.height) / 2, 0)
+    imageView.center = CGPoint(
+      x: scrollView.contentSize.width / 2 + offsetX,
+      y: scrollView.contentSize.height / 2 + offsetY
+    )
+  }
+
+  func scrollViewDidEndZooming(
+    _ scrollView: UIScrollView,
+    with view: UIView?,
+    atScale scale: CGFloat
+  ) {
+    UIView.animate(withDuration: 0.25) {
+      scrollView.zoomScale = 1.0
+    }
   }
 }
