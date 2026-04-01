@@ -78,6 +78,7 @@
 			);
 			name = "Threads feed";
 			packageProductDependencies = (
+				03DF22802F7C56CB00C04237 /* SnapKit */,
 			);
 			productName = "Threads feed";
 			productReference = 03DF22682F7C56CA00C04237 /* Threads feed.app */;
@@ -111,6 +112,9 @@
 			productRefGroup = 03DF22692F7C56CA00C04237 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
+			packageReferences = (
+				03DF22812F7C56CB00C04237 /* XCRemoteSwiftPackageReference "SnapKit" */,
+			);
 			targets = (
 				03DF22672F7C56CA00C04237 /* Threads feed */,
 			);
@@ -341,6 +345,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		03DF22812F7C56CB00C04237 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		03DF22802F7C56CB00C04237 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 03DF22812F7C56CB00C04237 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 03DF22602F7C56CA00C04237 /* Project object */;
 }

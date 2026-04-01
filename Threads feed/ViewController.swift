@@ -1,4 +1,5 @@
 import UIKit
+import SnapKit
 
 class ViewController: UIViewController {
 
@@ -9,12 +10,10 @@ class ViewController: UIViewController {
     let label = UILabel()
     label.text = "Threads Feed"
     label.font = .systemFont(ofSize: 24, weight: .bold)
-    label.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(label)
 
-    NSLayoutConstraint.activate([
-      label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-      label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-    ])
+    label.snp.makeConstraints { make in
+      make.center.equalToSuperview()
+    }
   }
 }
