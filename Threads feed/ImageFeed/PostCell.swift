@@ -6,6 +6,11 @@ class PostCell: UICollectionViewCell {
 
   static let reuseIdentifier = "PostCell"
 
+  var onImageTapped: ((URL) -> Void)? {
+    get { attachmentsView.onImageTapped }
+    set { attachmentsView.onImageTapped = newValue }
+  }
+
   private let avatarImageView = LazyImageView()
   private let headerStack = UIStackView()
   private let usernameLabel = UILabel()

@@ -7,8 +7,11 @@ class ImageAttachmentsView: UIView {
   // 16 (cell padding) + 40 (avatar) + 10 (gap)
   static let leadingInset: CGFloat = 16 + 40 + 10
 
+  var onImageTapped: ((URL) -> Void)?
+
   private let scrollView = UIScrollView()
   private let stackView = UIStackView()
+  private var urls: [URL] = []
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -46,17 +49,23 @@ class ImageAttachmentsView: UIView {
   }
 
   func configure(with urls: [URL]) {
+    self.urls = urls
     stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
     scrollView.contentOffset = CGPoint(x: -Self.leadingInset, y: 0)
     scrollView.isScrollEnabled = urls.count > 1
 
-    for url in urls {
+    for (index, url) in urls.enumerated() {
       let imageView = LazyImageView()
       imageView.placeholderView = makePlaceholder()
       imageView.url = url
       imageView.contentMode = .scaleAspectFill
       imageView.clipsToBounds = true
       imageView.layer.cornerRadius = 12
+      imageView.isUserInteractionEnabled = true
+      imageView.tag = index
+
+      let tap = UITapGestureRecognizer(target: self, action: #selector(imageTapped(_:)))
+      imageView.addGestureRecognizer(tap)
 
       imageView.snp.makeConstraints { make in
         make.width.equalTo(280)
@@ -64,6 +73,12 @@ class ImageAttachmentsView: UIView {
 
       stackView.addArrangedSubview(imageView)
     }
+  }
+
+  @objc private func imageTapped(_ gesture: UITapGestureRecognizer) {
+    guard let view = gesture.view else { return }
+    let url = urls[view.tag]
+    onImageTapped?(url)
   }
 
   private func makePlaceholder() -> UIView {
