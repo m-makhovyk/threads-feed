@@ -58,7 +58,7 @@ class ImageAttachmentsView: UIView {
       let imageView = LazyImageView()
       imageView.placeholderView = makePlaceholder()
       imageView.url = url
-      imageView.contentMode = .scaleAspectFill
+      imageView.imageView.contentMode = .scaleAspectFill
       imageView.clipsToBounds = true
       imageView.layer.cornerRadius = 12
       imageView.isUserInteractionEnabled = true
