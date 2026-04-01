@@ -6,8 +6,22 @@ class ImagePreviewViewController: UIViewController {
   private let imageURLs: [URL]
   private let initialIndex: Int
   private var hasScrolledToInitialPage = false
+  private var swipeToDismiss: SwipeToDismissInteraction?
 
-  private lazy var collectionView: UICollectionView = {
+  var currentImage: UIImage? {
+    let page = Int(round(collectionView.contentOffset.x / max(collectionView.bounds.width, 1)))
+    let indexPath = IndexPath(item: page, section: 0)
+    let cell = collectionView.cellForItem(at: indexPath) as? ZoomableImageCell
+    return cell?.imageView.image
+  }
+
+  private let backgroundView: UIView = {
+    let view = UIView()
+    view.backgroundColor = .black
+    return view
+  }()
+
+  lazy var collectionView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()
     layout.scrollDirection = .horizontal
     layout.minimumLineSpacing = 0
@@ -15,7 +29,7 @@ class ImagePreviewViewController: UIViewController {
     let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
     cv.isPagingEnabled = true
     cv.showsHorizontalScrollIndicator = false
-    cv.backgroundColor = .black
+    cv.backgroundColor = .clear
     cv.register(ZoomableImageCell.self, forCellWithReuseIdentifier: ZoomableImageCell.reuseID)
     return cv
   }()
@@ -35,7 +49,7 @@ class ImagePreviewViewController: UIViewController {
     self.imageURLs = imageURLs
     self.initialIndex = initialIndex
     super.init(nibName: nil, bundle: nil)
-    modalPresentationStyle = .fullScreen
+    modalPresentationStyle = .overFullScreen
   }
 
   required init?(coder: NSCoder) {
@@ -44,7 +58,11 @@ class ImagePreviewViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    view.backgroundColor = .black
+    view.backgroundColor = .clear
+
+    backgroundView.frame = view.bounds
+    backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    view.addSubview(backgroundView)
 
     collectionView.frame = view.bounds
     collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -60,6 +78,12 @@ class ImagePreviewViewController: UIViewController {
     }
 
     closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+
+    swipeToDismiss = SwipeToDismissInteraction(
+      viewController: self,
+      backgroundView: backgroundView,
+      closeButton: closeButton
+    )
   }
 
   override func viewDidLayoutSubviews() {

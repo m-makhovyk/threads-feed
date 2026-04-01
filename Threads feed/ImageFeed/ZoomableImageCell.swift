@@ -6,7 +6,7 @@ class ZoomableImageCell: UICollectionViewCell {
   static let reuseID = "ZoomableImageCell"
 
   private let scrollView = UIScrollView()
-  private let imageView = UIImageView()
+  private(set) var imageView = UIImageView()
 
   override init(frame: CGRect) {
     super.init(frame: frame)
