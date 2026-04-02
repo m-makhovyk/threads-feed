@@ -164,6 +164,8 @@ extension SwipeToDismissInteraction: UIGestureRecognizerDelegate {
 
   func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
     guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return true }
+    guard viewController?.currentCell?.isZoomed != true else { return false }
+
     let velocity = pan.velocity(in: viewController?.view)
     return abs(velocity.y) > abs(velocity.x)
   }

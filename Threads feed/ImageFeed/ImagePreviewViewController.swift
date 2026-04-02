@@ -16,9 +16,12 @@ class ImagePreviewViewController: UIViewController {
   }
 
   var currentImage: UIImage? {
+    currentCell?.imageView.image
+  }
+
+  var currentCell: ZoomableImageCell? {
     let indexPath = IndexPath(item: currentPage, section: 0)
-    let cell = collectionView.cellForItem(at: indexPath) as? ZoomableImageCell
-    return cell?.imageView.image
+    return collectionView.cellForItem(at: indexPath) as? ZoomableImageCell
   }
 
   let backgroundView: UIView = {

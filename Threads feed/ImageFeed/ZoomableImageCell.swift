@@ -5,6 +5,10 @@ class ZoomableImageCell: UICollectionViewCell {
 
   static let reuseID = "ZoomableImageCell"
 
+  var isZoomed: Bool {
+    scrollView.zoomScale > scrollView.minimumZoomScale + 0.01
+  }
+
   private let scrollView = UIScrollView()
   private(set) var imageView = UIImageView()
   private var imageTask: ImageTask?
