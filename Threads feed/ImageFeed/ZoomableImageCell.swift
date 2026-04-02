@@ -35,6 +35,10 @@ class ZoomableImageCell: UICollectionViewCell {
     imageView.frame = imageContainerView.bounds
     imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     imageContainerView.addSubview(imageView)
+
+    let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
+    doubleTap.numberOfTapsRequired = 2
+    scrollView.addGestureRecognizer(doubleTap)
   }
 
   required init?(coder: NSCoder) {
@@ -116,6 +120,34 @@ class ZoomableImageCell: UICollectionViewCell {
     } else {
       return CGSize(width: boundsSize.height * imageRatio, height: boundsSize.height)
     }
+  }
+
+  @objc private func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
+    guard imageView.image != nil else { return }
+
+    if isZoomed {
+      scrollView.setZoomScale(scrollView.minimumZoomScale, animated: true)
+      return
+    }
+
+    let targetZoomScale = min(scrollView.maximumZoomScale, 3)
+    let tapPoint = gesture.location(in: imageContainerView)
+    let zoomRect = zoomRect(for: targetZoomScale, centeredAt: tapPoint)
+    scrollView.zoom(to: zoomRect, animated: true)
+  }
+
+  private func zoomRect(for scale: CGFloat, centeredAt point: CGPoint) -> CGRect {
+    let size = CGSize(
+      width: scrollView.bounds.width / scale,
+      height: scrollView.bounds.height / scale
+    )
+
+    return CGRect(
+      x: point.x - size.width / 2,
+      y: point.y - size.height / 2,
+      width: size.width,
+      height: size.height
+    )
   }
 }
 
