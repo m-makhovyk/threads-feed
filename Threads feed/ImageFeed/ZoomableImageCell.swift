@@ -7,6 +7,8 @@ class ZoomableImageCell: UICollectionViewCell {
 
   private let scrollView = UIScrollView()
   private(set) var imageView = UIImageView()
+  private var imageTask: ImageTask?
+  private var currentURL: URL?
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -31,15 +33,27 @@ class ZoomableImageCell: UICollectionViewCell {
   }
 
   func configure(with url: URL) {
-    ImagePipeline.shared.loadImage(with: url) { [weak self] result in
+    currentURL = url
+    imageTask?.cancel()
+    imageView.image = nil
+
+    imageTask = ImagePipeline.shared.loadImage(with: url) { [weak self] result in
+      guard let self else { return }
+      guard self.currentURL == url else { return }
+
+      self.imageTask = nil
+
       if case .success(let response) = result {
-        self?.imageView.image = response.image
+        self.imageView.image = response.image
       }
     }
   }
 
   override func prepareForReuse() {
     super.prepareForReuse()
+    imageTask?.cancel()
+    imageTask = nil
+    currentURL = nil
     scrollView.zoomScale = 1.0
     imageView.image = nil
   }
