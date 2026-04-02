@@ -6,6 +6,7 @@ class ImageAttachmentsView: UIView {
 
   // 16 (cell padding) + 40 (avatar) + 10 (gap)
   static let leadingInset: CGFloat = 16 + 40 + 10
+  static let imageCornerRadius: CGFloat = 12
 
   var onImageTapped: ((_ urls: [URL], _ index: Int) -> Void)?
 
@@ -60,7 +61,7 @@ class ImageAttachmentsView: UIView {
       imageView.url = url
       imageView.imageView.contentMode = .scaleAspectFill
       imageView.clipsToBounds = true
-      imageView.layer.cornerRadius = 12
+      imageView.layer.cornerRadius = Self.imageCornerRadius
       imageView.isUserInteractionEnabled = true
       imageView.tag = index
 
@@ -80,10 +81,20 @@ class ImageAttachmentsView: UIView {
     onImageTapped?(urls, view.tag)
   }
 
+  func imageView(at index: Int) -> UIView? {
+    guard index >= 0, index < stackView.arrangedSubviews.count else { return nil }
+    return stackView.arrangedSubviews[index]
+  }
+
+  func image(at index: Int) -> UIImage? {
+    guard let lazyImageView = imageView(at: index) as? LazyImageView else { return nil }
+    return lazyImageView.imageView.image
+  }
+
   private func makePlaceholder() -> UIView {
     let view = UIView()
     view.backgroundColor = .secondarySystemBackground
-    view.layer.cornerRadius = 12
+    view.layer.cornerRadius = Self.imageCornerRadius
     return view
   }
 }

@@ -62,8 +62,17 @@ extension ImageFeedViewController: UICollectionViewDataSource {
     ) as! PostCell
     cell.configure(with: posts[indexPath.item])
     cell.onImageTapped = { [weak self] urls, index in
+      guard let self else { return }
       let preview = ImagePreviewViewController(imageURLs: urls, initialIndex: index)
-      self?.present(preview, animated: true)
+      preview.zoomTransition.sourceProvider = { [weak self, weak preview] pageIndex in
+        guard let self else { return nil }
+        guard let cell = self.collectionView.cellForItem(at: indexPath) as? PostCell else { return nil }
+        guard let sourceView = cell.imageView(forAttachmentAt: pageIndex) else { return nil }
+        let image = preview?.currentImage ?? cell.image(forAttachmentAt: pageIndex)
+        guard let image else { return nil }
+        return ImageZoomTransition.SourceInfo(view: sourceView, image: image, cornerRadius: ImageAttachmentsView.imageCornerRadius)
+      }
+      self.present(preview, animated: true)
     }
     return cell
   }

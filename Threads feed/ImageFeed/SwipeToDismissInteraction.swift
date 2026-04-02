@@ -40,7 +40,7 @@ class SwipeToDismissInteraction: NSObject {
     case .began:
       guard let image = viewController.currentImage else { return }
       closeButton?.alpha = 0
-      sourceFrame = Self.aspectFitFrame(for: image, in: viewController.view.bounds)
+      sourceFrame = ImageZoomTransition.aspectFitFrame(for: image, in: viewController.view.bounds)
 
       let imageView = UIImageView(image: image)
       imageView.contentMode = .scaleAspectFit
@@ -55,8 +55,8 @@ class SwipeToDismissInteraction: NSObject {
     case .changed:
       guard let snapshotView else { return }
       let scale = 1.0 - progress * maxScaleReduction
-      snapshotView.transform = CGAffineTransform(translationX: translation.x, y: translation.y)
-        .scaledBy(x: scale, y: scale)
+      snapshotView.transform = CGAffineTransform(scaleX: scale, y: scale)
+        .concatenating(CGAffineTransform(translationX: translation.x, y: translation.y))
       snapshotView.layer.cornerRadius = progress * maxCornerRadius
       backgroundView.alpha = 1 - progress
 
@@ -67,16 +67,25 @@ class SwipeToDismissInteraction: NSObject {
       let shouldDismiss = distance >= dismissThreshold || speed >= velocityThreshold
 
       if shouldDismiss {
-        let translationX = translation.x + velocity.x * 0.15
-        let translationY = translation.y + velocity.y * 0.15
+        let image = viewController.currentImage
+        let sourceInfo = image != nil
+          ? viewController.zoomTransition.sourceProvider?(viewController.currentPage)
+          : nil
 
-        UIView.animate(withDuration: 0.25, animations: {
-          snapshotView.transform = CGAffineTransform(translationX: translationX, y: translationY)
-          snapshotView.alpha = 0
-          backgroundView.alpha = 0
-        }) { _ in
-          self.cleanup()
-          viewController.dismiss(animated: false)
+        if let image, let sourceInfo {
+          animateDismissToSource(image: image, sourceInfo: sourceInfo, translation: translation, progress: progress)
+        } else {
+          let translationX = translation.x + velocity.x * 0.15
+          let translationY = translation.y + velocity.y * 0.15
+
+          UIView.animate(withDuration: 0.25, animations: {
+            snapshotView.transform = CGAffineTransform(translationX: translationX, y: translationY)
+            snapshotView.alpha = 0
+            backgroundView.alpha = 0
+          }) { _ in
+            self.cleanup()
+            viewController.dismiss(animated: false)
+          }
         }
       } else {
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0) {
@@ -97,26 +106,57 @@ class SwipeToDismissInteraction: NSObject {
     }
   }
 
+  private func animateDismissToSource(
+    image: UIImage,
+    sourceInfo: ImageZoomTransition.SourceInfo,
+    translation: CGPoint,
+    progress: CGFloat
+  ) {
+    guard let viewController, let backgroundView else { return }
+
+    let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: viewController.view)
+    let currentScale = 1.0 - progress * maxScaleReduction
+    let visualFrame = CGRect(
+      x: sourceFrame.midX + translation.x - sourceFrame.width * currentScale / 2,
+      y: sourceFrame.midY + translation.y - sourceFrame.height * currentScale / 2,
+      width: sourceFrame.width * currentScale,
+      height: sourceFrame.height * currentScale
+    )
+    let currentCornerRadius = snapshotView?.layer.cornerRadius ?? 0
+
+    snapshotView?.removeFromSuperview()
+    snapshotView = nil
+    sourceInfo.view.alpha = 0
+
+    let start = ImageZoomTransition.Endpoint(
+      frame: visualFrame,
+      imageSize: ImageZoomTransition.aspectFitSize(for: image, in: visualFrame.size),
+      cornerRadius: currentCornerRadius
+    )
+    let end = ImageZoomTransition.Endpoint(
+      frame: cellFrame,
+      imageSize: ImageZoomTransition.aspectFillSize(for: image, in: cellFrame.size),
+      cornerRadius: sourceInfo.cornerRadius
+    )
+
+    ImageZoomTransition.animateClipTransition(
+      image: image,
+      from: start,
+      to: end,
+      in: viewController.view,
+      alongside: {
+        backgroundView.alpha = 0
+      },
+      completion: {
+        sourceInfo.view.alpha = 1
+        viewController.dismiss(animated: false)
+      }
+    )
+  }
+
   private func cleanup() {
     snapshotView?.removeFromSuperview()
     snapshotView = nil
-  }
-
-  private static func aspectFitFrame(for image: UIImage, in bounds: CGRect) -> CGRect {
-    let imageRatio = image.size.width / image.size.height
-    let boundsRatio = bounds.width / bounds.height
-    let size: CGSize
-    if imageRatio > boundsRatio {
-      size = CGSize(width: bounds.width, height: bounds.width / imageRatio)
-    } else {
-      size = CGSize(width: bounds.height * imageRatio, height: bounds.height)
-    }
-    return CGRect(
-      x: (bounds.width - size.width) / 2,
-      y: (bounds.height - size.height) / 2,
-      width: size.width,
-      height: size.height
-    )
   }
 }
 

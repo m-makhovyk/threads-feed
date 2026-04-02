@@ -95,6 +95,14 @@ class PostCell: UICollectionViewCell {
     }
   }
 
+  func imageView(forAttachmentAt index: Int) -> UIView? {
+    attachmentsView.imageView(at: index)
+  }
+
+  func image(forAttachmentAt index: Int) -> UIImage? {
+    attachmentsView.image(at: index)
+  }
+
   private func makeAvatarPlaceholder() -> UIView {
     let view = UIView()
     view.backgroundColor = .tertiarySystemFill

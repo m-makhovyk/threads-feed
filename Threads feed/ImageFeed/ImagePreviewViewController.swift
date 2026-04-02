@@ -4,18 +4,24 @@ import SnapKit
 class ImagePreviewViewController: UIViewController {
 
   private let imageURLs: [URL]
-  private let initialIndex: Int
+  let initialIndex: Int
   private var hasScrolledToInitialPage = false
   private var swipeToDismiss: SwipeToDismissInteraction?
+  let zoomTransition = ImageZoomTransition()
+
+  var currentPage: Int {
+    guard collectionView.bounds.width > 0 else { return initialIndex }
+    let page = Int(round(collectionView.contentOffset.x / collectionView.bounds.width))
+    return min(max(page, 0), imageURLs.count - 1)
+  }
 
   var currentImage: UIImage? {
-    let page = Int(round(collectionView.contentOffset.x / max(collectionView.bounds.width, 1)))
-    let indexPath = IndexPath(item: page, section: 0)
+    let indexPath = IndexPath(item: currentPage, section: 0)
     let cell = collectionView.cellForItem(at: indexPath) as? ZoomableImageCell
     return cell?.imageView.image
   }
 
-  private let backgroundView: UIView = {
+  let backgroundView: UIView = {
     let view = UIView()
     view.backgroundColor = .black
     return view
@@ -34,7 +40,7 @@ class ImagePreviewViewController: UIViewController {
     return cv
   }()
 
-  private let closeButton: UIButton = {
+  let closeButton: UIButton = {
     let button = UIButton(type: .system)
     let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
     let image = UIImage(systemName: "xmark", withConfiguration: config)
@@ -50,6 +56,7 @@ class ImagePreviewViewController: UIViewController {
     self.initialIndex = initialIndex
     super.init(nibName: nil, bundle: nil)
     modalPresentationStyle = .overFullScreen
+    transitioningDelegate = self
   }
 
   required init?(coder: NSCoder) {
@@ -133,5 +140,24 @@ extension ImagePreviewViewController: UICollectionViewDelegateFlowLayout {
     sizeForItemAt indexPath: IndexPath
   ) -> CGSize {
     collectionView.bounds.size
+  }
+}
+
+extension ImagePreviewViewController: UIViewControllerTransitioningDelegate {
+
+  func animationController(
+    forPresented presented: UIViewController,
+    presenting: UIViewController,
+    source: UIViewController
+  ) -> (any UIViewControllerAnimatedTransitioning)? {
+    zoomTransition.isPresenting = true
+    return zoomTransition
+  }
+
+  func animationController(
+    forDismissed dismissed: UIViewController
+  ) -> (any UIViewControllerAnimatedTransitioning)? {
+    zoomTransition.isPresenting = false
+    return zoomTransition
   }
 }
