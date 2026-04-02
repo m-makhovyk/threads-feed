@@ -66,7 +66,7 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     let end = Endpoint(
       frame: screenBounds,
       imageSize: Self.aspectFitSize(for: image, in: screenBounds.size),
-      cornerRadius: 0
+      cornerRadius: sourceInfo.cornerRadius
     )
 
     Self.animateClipTransition(
@@ -168,6 +168,8 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
 
     let imageView = UIImageView(image: image)
     imageView.frame = centeredRect(size: start.imageSize, in: start.frame.size)
+    imageView.clipsToBounds = true
+    imageView.layer.cornerRadius = end.cornerRadius
     clipView.addSubview(imageView)
 
     UIView.animate(
@@ -179,6 +181,7 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
       clipView.frame = end.frame
       clipView.layer.cornerRadius = end.cornerRadius
       imageView.frame = centeredRect(size: end.imageSize, in: end.frame.size)
+      imageView.layer.cornerRadius = 0
       alongside()
     } completion: { _ in
       clipView.removeFromSuperview()
