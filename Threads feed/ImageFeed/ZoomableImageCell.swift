@@ -74,13 +74,4 @@ extension ZoomableImageCell: UIScrollViewDelegate {
     )
   }
 
-  func scrollViewDidEndZooming(
-    _ scrollView: UIScrollView,
-    with view: UIView?,
-    atScale scale: CGFloat
-  ) {
-    UIView.animate(withDuration: 0.25) {
-      scrollView.zoomScale = 1.0
-    }
-  }
 }
