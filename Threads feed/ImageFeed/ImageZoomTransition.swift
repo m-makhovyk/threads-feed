@@ -82,7 +82,9 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
         let completed = !context.transitionWasCancelled
         if completed {
           toVC.collectionView.alpha = 1
-          toVC.closeButton.alpha = 1
+          UIView.animate(withDuration: 0.1, delay: 0) {
+            toVC.closeButton.alpha = 1
+          }
         }
         sourceInfo.view.alpha = 1
         context.completeTransition(completed)
