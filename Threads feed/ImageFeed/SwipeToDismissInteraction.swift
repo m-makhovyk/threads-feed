@@ -28,6 +28,7 @@ class SwipeToDismissInteraction: NSObject {
     let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
     pan.delegate = self
     viewController.view.addGestureRecognizer(pan)
+    viewController.collectionView.panGestureRecognizer.require(toFail: pan)
   }
 
   @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
@@ -167,6 +168,27 @@ extension SwipeToDismissInteraction: UIGestureRecognizerDelegate {
     guard viewController?.currentCell?.isZoomed != true else { return false }
 
     let velocity = pan.velocity(in: viewController?.view)
-    return abs(velocity.y) > abs(velocity.x)
+    return canStartDismiss(with: velocity)
+  }
+
+  private func canStartDismiss(with velocity: CGPoint) -> Bool {
+    guard let viewController else { return false }
+
+    if abs(velocity.y) > abs(velocity.x) {
+      return true
+    }
+
+    if viewController.imageCount <= 1 {
+      return true
+    }
+
+    let isFirstPage = viewController.currentPage == 0
+    let isLastPage = viewController.currentPage == viewController.imageCount - 1
+
+    if velocity.x > 0 {
+      return isFirstPage
+    }
+
+    return false
   }
 }

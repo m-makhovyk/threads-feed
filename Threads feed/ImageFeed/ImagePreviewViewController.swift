@@ -9,6 +9,10 @@ class ImagePreviewViewController: UIViewController {
   private var swipeToDismiss: SwipeToDismissInteraction?
   let zoomTransition = ImageZoomTransition()
 
+  var imageCount: Int {
+    imageURLs.count
+  }
+
   var currentPage: Int {
     guard collectionView.bounds.width > 0 else { return initialIndex }
     let page = Int(round(collectionView.contentOffset.x / collectionView.bounds.width))
