@@ -12,6 +12,7 @@ class SwipeToDismissInteraction: NSObject {
   private let maxCornerRadius: CGFloat = 24
   private let maxDistance: CGFloat = 300
 
+  private var panGesture: UIPanGestureRecognizer!
   private var snapshotView: UIImageView?
   private var sourceFrame: CGRect = .zero
 
@@ -29,6 +30,11 @@ class SwipeToDismissInteraction: NSObject {
     pan.delegate = self
     viewController.view.addGestureRecognizer(pan)
     viewController.collectionView.panGestureRecognizer.require(toFail: pan)
+    panGesture = pan
+  }
+
+  func disable() {
+    panGesture.isEnabled = false
   }
 
   @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
@@ -68,6 +74,7 @@ class SwipeToDismissInteraction: NSObject {
       let shouldDismiss = distance >= dismissThreshold || speed >= velocityThreshold
 
       if shouldDismiss {
+        panGesture.isEnabled = false
         let image = viewController.currentImage
         let sourceInfo = image != nil
           ? viewController.zoomTransition.sourceProvider?(viewController.currentPage)
