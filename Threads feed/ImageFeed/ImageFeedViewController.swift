@@ -66,14 +66,30 @@ extension ImageFeedViewController: UICollectionViewDataSource {
       let preview = ImagePreviewViewController(imageURLs: urls, initialIndex: index)
       preview.zoomTransition.sourceProvider = { [weak self, weak preview] pageIndex in
         guard let self else { return nil }
-        guard let cell = self.collectionView.cellForItem(at: indexPath) as? PostCell else { return nil }
-        guard let sourceView = cell.imageView(forAttachmentAt: pageIndex) else { return nil }
-        let image = preview?.currentImage ?? cell.image(forAttachmentAt: pageIndex)
-        guard let image else { return nil }
-        return ImageZoomTransition.SourceInfo(view: sourceView, image: image, cornerRadius: ImageAttachmentsView.imageCornerRadius)
+        return self.sourceInfo(forPage: pageIndex, at: indexPath, previewImage: preview?.currentImage)
       }
       self.present(preview, animated: true)
     }
     return cell
+  }
+}
+
+// MARK: - Transition Source
+
+extension ImageFeedViewController {
+
+  private func sourceInfo(
+    forPage pageIndex: Int,
+    at indexPath: IndexPath,
+    previewImage: UIImage?
+  ) -> ImageZoomTransition.SourceInfo? {
+    guard let cell = collectionView.cellForItem(at: indexPath) as? PostCell else { return nil }
+    guard let sourceView = cell.imageView(forAttachmentAt: pageIndex) else { return nil }
+    guard let image = previewImage ?? cell.image(forAttachmentAt: pageIndex) else { return nil }
+    return ImageZoomTransition.SourceInfo(
+      view: sourceView,
+      image: image,
+      cornerRadius: ImageAttachmentsView.imageCornerRadius
+    )
   }
 }
