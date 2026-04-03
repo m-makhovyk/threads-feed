@@ -84,10 +84,11 @@ class PostCell: UICollectionViewCell {
     postTextLabel.isHidden = post.text == nil
     postTextLabel.text = post.text
 
-    let hasAttachments = !post.attachments.isEmpty
+    let attachmentHeight = attachmentHeight(for: post.attachments)
+    let hasAttachments = attachmentHeight > 0
     attachmentsView.isHidden = !hasAttachments
     attachmentsView.snp.updateConstraints { make in
-      make.height.equalTo(hasAttachments ? LayoutConstants.attachmentHeight : 0)
+      make.height.equalTo(attachmentHeight)
       make.top.equalTo(contentStack.snp.bottom).offset(hasAttachments ? 10 : 0)
     }
     if hasAttachments {
@@ -101,6 +102,15 @@ class PostCell: UICollectionViewCell {
 
   func image(forAttachmentAt index: Int) -> UIImage? {
     attachmentsView.image(at: index)
+  }
+
+  private func attachmentHeight(for attachments: [ImageAttachment]) -> CGFloat {
+    guard !attachments.isEmpty else { return 0 }
+    guard attachments.count == 1 else { return LayoutConstants.attachmentHeight }
+
+    let availableWidth = contentView.bounds.width - LayoutConstants.contentLeadingInset - 16
+    let rawHeight = availableWidth / attachments[0].aspectRatio
+    return min(max(rawHeight, LayoutConstants.attachmentMinHeight), LayoutConstants.attachmentMaxHeight)
   }
 
   private func makeAvatarPlaceholder() -> UIView {

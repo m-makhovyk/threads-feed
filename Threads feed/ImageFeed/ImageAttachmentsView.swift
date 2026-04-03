@@ -7,7 +7,7 @@ class ImageAttachmentsView: UIView {
   var onImageTapped: ((_ urls: [URL], _ index: Int) -> Void)?
 
   private var collectionView: UICollectionView!
-  private var urls: [URL] = []
+  private var attachments: [ImageAttachment] = []
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -47,11 +47,11 @@ class ImageAttachmentsView: UIView {
     )
   }
 
-  func configure(with urls: [URL]) {
-    self.urls = urls
+  func configure(with attachments: [ImageAttachment]) {
+    self.attachments = attachments
     collectionView.reloadData()
     collectionView.contentOffset = CGPoint(x: -LayoutConstants.contentLeadingInset, y: 0)
-    collectionView.isScrollEnabled = urls.count > 1
+    collectionView.isScrollEnabled = attachments.count > 1
   }
 
   func imageView(at index: Int) -> UIView? {
@@ -75,7 +75,7 @@ extension ImageAttachmentsView: UICollectionViewDataSource {
     _ collectionView: UICollectionView,
     numberOfItemsInSection section: Int
   ) -> Int {
-    urls.count
+    attachments.count
   }
 
   func collectionView(
@@ -86,7 +86,7 @@ extension ImageAttachmentsView: UICollectionViewDataSource {
       withReuseIdentifier: AttachmentImageCell.reuseID,
       for: indexPath
     ) as! AttachmentImageCell
-    cell.configure(with: urls[indexPath.item])
+    cell.configure(with: attachments[indexPath.item].url)
     return cell
   }
 }
@@ -100,13 +100,19 @@ extension ImageAttachmentsView: UICollectionViewDelegateFlowLayout {
     layout collectionViewLayout: UICollectionViewLayout,
     sizeForItemAt indexPath: IndexPath
   ) -> CGSize {
-    CGSize(width: LayoutConstants.attachmentImageWidth, height: collectionView.bounds.height)
+    let height = collectionView.bounds.height
+    if attachments.count == 1 {
+      let availableWidth = collectionView.bounds.width - collectionView.contentInset.left - collectionView.contentInset.right
+      return CGSize(width: availableWidth, height: height)
+    }
+    return CGSize(width: LayoutConstants.attachmentImageWidth, height: height)
   }
 
   func collectionView(
     _ collectionView: UICollectionView,
     didSelectItemAt indexPath: IndexPath
   ) {
+    let urls = attachments.map(\.url)
     onImageTapped?(urls, indexPath.item)
   }
 }

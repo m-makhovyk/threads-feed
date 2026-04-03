@@ -10,9 +10,9 @@ enum MockData {
       ),
       text: "Morning hike in the mountains. The view was absolutely worth waking up at 5am",
       attachments: [
-        URL(string: "https://picsum.photos/seed/mountain1/800/600")!,
-        URL(string: "https://picsum.photos/seed/mountain2/400/500")!,
-        URL(string: "https://picsum.photos/seed/mountain3/600/900")!,
+        picsum("mountain1", 800, 600),
+        picsum("mountain2", 400, 500),
+        picsum("mountain3", 600, 900),
       ],
       createdAt: Date().addingTimeInterval(-5 * 3600)
     ),
@@ -23,7 +23,7 @@ enum MockData {
       ),
       text: nil,
       attachments: [
-        URL(string: "https://picsum.photos/seed/food1/400/500")!,
+        picsum("food1", 400, 500),
       ],
       createdAt: Date().addingTimeInterval(-2 * 3600)
     ),
@@ -43,8 +43,8 @@ enum MockData {
       ),
       text: "City lights at night. No filter needed when the city does the work for you",
       attachments: [
-        URL(string: "https://picsum.photos/seed/city1/400/500")!,
-        URL(string: "https://picsum.photos/seed/city2/400/500")!,
+        picsum("city1", 400, 500),
+        picsum("city2", 400, 500),
       ],
       createdAt: Date().addingTimeInterval(-12 * 3600)
     ),
@@ -55,10 +55,10 @@ enum MockData {
       ),
       text: "She finally learned how to open doors. We're doomed",
       attachments: [
-        URL(string: "https://picsum.photos/seed/cat1/300/300")!,
-        URL(string: "https://picsum.photos/seed/cat2/500/800")!,
-        URL(string: "https://picsum.photos/seed/cat3/900/400")!,
-        URL(string: "https://picsum.photos/seed/cat4/400/500")!,
+        picsum("cat1", 300, 300),
+        picsum("cat2", 500, 800),
+        picsum("cat3", 900, 400),
+        picsum("cat4", 400, 500),
       ],
       createdAt: Date().addingTimeInterval(-36 * 3600)
     ),
@@ -69,10 +69,18 @@ enum MockData {
       ),
       text: "Just a regular rectangular dog, nothing to see here",
       attachments: [
-        URL(string: "https://picsum.photos/seed/dog1/400/500")!,
-        URL(string: "https://picsum.photos/seed/dog2/400/500")!,
+        picsum("dog1", 400, 500),
+        picsum("dog2", 400, 500),
       ],
       createdAt: Date().addingTimeInterval(-19 * 3600)
     ),
   ]
+
+  private static func picsum(_ seed: String, _ width: Int, _ height: Int) -> ImageAttachment {
+    ImageAttachment(
+      url: URL(string: "https://picsum.photos/seed/\(seed)/\(width)/\(height)")!,
+      width: width,
+      height: height
+    )
+  }
 }

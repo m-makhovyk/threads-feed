@@ -3,6 +3,6 @@ import Foundation
 struct Post {
   let author: Author
   let text: String?
-  let attachments: [URL]
+  let attachments: [ImageAttachment]
   let createdAt: Date
 }

@@ -10,6 +10,8 @@ enum LayoutConstants {
   static let contentLeadingInset: CGFloat = 16 + avatarSize + avatarToContentSpacing
 
   static let attachmentHeight: CGFloat = 350
+  static let attachmentMinHeight: CGFloat = 200
+  static let attachmentMaxHeight: CGFloat = 450
   static let attachmentCornerRadius: CGFloat = 12
   static let attachmentImageWidth: CGFloat = 280
   static let attachmentImageSpacing: CGFloat = 8
