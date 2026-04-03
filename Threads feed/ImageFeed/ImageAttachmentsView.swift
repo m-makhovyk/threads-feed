@@ -4,10 +4,6 @@ import NukeUI
 
 class ImageAttachmentsView: UIView {
 
-  // 16 (cell padding) + 40 (avatar) + 10 (gap)
-  static let leadingInset: CGFloat = 16 + 40 + 10
-  static let imageCornerRadius: CGFloat = 12
-
   var onImageTapped: ((_ urls: [URL], _ index: Int) -> Void)?
 
   private var collectionView: UICollectionView!
@@ -25,7 +21,7 @@ class ImageAttachmentsView: UIView {
   private func setupViews() {
     let layout = UICollectionViewFlowLayout()
     layout.scrollDirection = .horizontal
-    layout.minimumLineSpacing = 8
+    layout.minimumLineSpacing = LayoutConstants.attachmentImageSpacing
 
     collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
     collectionView.dataSource = self
@@ -45,7 +41,7 @@ class ImageAttachmentsView: UIView {
 
     collectionView.contentInset = UIEdgeInsets(
       top: 0,
-      left: Self.leadingInset,
+      left: LayoutConstants.contentLeadingInset,
       bottom: 0,
       right: 16
     )
@@ -54,7 +50,7 @@ class ImageAttachmentsView: UIView {
   func configure(with urls: [URL]) {
     self.urls = urls
     collectionView.reloadData()
-    collectionView.contentOffset = CGPoint(x: -Self.leadingInset, y: 0)
+    collectionView.contentOffset = CGPoint(x: -LayoutConstants.contentLeadingInset, y: 0)
     collectionView.isScrollEnabled = urls.count > 1
   }
 
@@ -104,7 +100,7 @@ extension ImageAttachmentsView: UICollectionViewDelegateFlowLayout {
     layout collectionViewLayout: UICollectionViewLayout,
     sizeForItemAt indexPath: IndexPath
   ) -> CGSize {
-    CGSize(width: 280, height: collectionView.bounds.height)
+    CGSize(width: LayoutConstants.attachmentImageWidth, height: collectionView.bounds.height)
   }
 
   func collectionView(
@@ -128,7 +124,7 @@ private class AttachmentImageCell: UICollectionViewCell {
 
     lazyImageView.imageView.contentMode = .scaleAspectFill
     lazyImageView.clipsToBounds = true
-    lazyImageView.layer.cornerRadius = ImageAttachmentsView.imageCornerRadius
+    lazyImageView.layer.cornerRadius = LayoutConstants.attachmentCornerRadius
     lazyImageView.placeholderView = makePlaceholder()
     contentView.addSubview(lazyImageView)
 
@@ -153,7 +149,7 @@ private class AttachmentImageCell: UICollectionViewCell {
   private func makePlaceholder() -> UIView {
     let view = UIView()
     view.backgroundColor = .secondarySystemBackground
-    view.layer.cornerRadius = ImageAttachmentsView.imageCornerRadius
+    view.layer.cornerRadius = LayoutConstants.attachmentCornerRadius
     return view
   }
 }

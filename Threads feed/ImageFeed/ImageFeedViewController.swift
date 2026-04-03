@@ -89,7 +89,7 @@ extension ImageFeedViewController {
     return ImageZoomTransition.SourceInfo(
       view: sourceView,
       image: image,
-      cornerRadius: ImageAttachmentsView.imageCornerRadius
+      cornerRadius: LayoutConstants.attachmentCornerRadius
     )
   }
 }

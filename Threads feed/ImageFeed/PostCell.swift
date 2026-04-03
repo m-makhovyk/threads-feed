@@ -31,7 +31,7 @@ class PostCell: UICollectionViewCell {
   private func setupViews() {
     avatarImageView.contentMode = .scaleAspectFill
     avatarImageView.clipsToBounds = true
-    avatarImageView.layer.cornerRadius = 20
+    avatarImageView.layer.cornerRadius = LayoutConstants.avatarCornerRadius
     avatarImageView.placeholderView = makeAvatarPlaceholder()
     contentView.addSubview(avatarImageView)
 
@@ -59,11 +59,11 @@ class PostCell: UICollectionViewCell {
     avatarImageView.snp.makeConstraints { make in
       make.leading.equalToSuperview().offset(16)
       make.top.equalToSuperview().offset(12)
-      make.size.equalTo(40)
+      make.size.equalTo(LayoutConstants.avatarSize)
     }
 
     contentStack.snp.makeConstraints { make in
-      make.leading.equalTo(avatarImageView.snp.trailing).offset(10)
+      make.leading.equalTo(avatarImageView.snp.trailing).offset(LayoutConstants.avatarToContentSpacing)
       make.top.equalTo(avatarImageView)
       make.trailing.equalToSuperview().offset(-16)
     }
@@ -71,7 +71,7 @@ class PostCell: UICollectionViewCell {
     attachmentsView.snp.makeConstraints { make in
       make.leading.trailing.equalToSuperview()
       make.top.equalTo(contentStack.snp.bottom).offset(10)
-      make.height.equalTo(350)
+      make.height.equalTo(LayoutConstants.attachmentHeight)
       make.bottom.equalToSuperview().offset(-12)
     }
   }
@@ -87,7 +87,7 @@ class PostCell: UICollectionViewCell {
     let hasAttachments = !post.attachments.isEmpty
     attachmentsView.isHidden = !hasAttachments
     attachmentsView.snp.updateConstraints { make in
-      make.height.equalTo(hasAttachments ? 350 : 0)
+      make.height.equalTo(hasAttachments ? LayoutConstants.attachmentHeight : 0)
       make.top.equalTo(contentStack.snp.bottom).offset(hasAttachments ? 10 : 0)
     }
     if hasAttachments {
@@ -106,7 +106,7 @@ class PostCell: UICollectionViewCell {
   private func makeAvatarPlaceholder() -> UIView {
     let view = UIView()
     view.backgroundColor = .tertiarySystemFill
-    view.layer.cornerRadius = 20
+    view.layer.cornerRadius = LayoutConstants.avatarCornerRadius
     return view
   }
 }
