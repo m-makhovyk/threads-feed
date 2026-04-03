@@ -183,7 +183,6 @@ extension SwipeToDismissInteraction: UIGestureRecognizerDelegate {
     }
 
     let isFirstPage = viewController.currentPage == 0
-    let isLastPage = viewController.currentPage == viewController.imageCount - 1
 
     if velocity.x > 0 {
       return isFirstPage
