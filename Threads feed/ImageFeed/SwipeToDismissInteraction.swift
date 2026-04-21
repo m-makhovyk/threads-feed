@@ -75,25 +75,44 @@ class SwipeToDismissInteraction: NSObject {
 
       if shouldDismiss {
         panGesture.isEnabled = false
+
+        // Capture state before dismissing
         let image = viewController.currentImage
         let sourceInfo = image != nil
           ? viewController.zoomTransition.sourceProvider?(viewController.currentPage)
           : nil
+        let currentScale = 1.0 - progress * maxScaleReduction
+        let currentCornerRadius = snapshotView.layer.cornerRadius
 
+        // Start clip animation on feed collection view FIRST (still behind preview)
         if let image, let sourceInfo {
-          animateDismissToSource(image: image, sourceInfo: sourceInfo, translation: translation, progress: progress)
-        } else {
-          let translationX = translation.x + velocity.x * 0.15
-          let translationY = translation.y + velocity.y * 0.15
+          animateDismissToSource(
+            image: image,
+            sourceInfo: sourceInfo,
+            translation: translation,
+            scale: currentScale,
+            cornerRadius: currentCornerRadius
+          )
+        }
 
-          UIView.animate(withDuration: 0.25, animations: {
-            snapshotView.transform = CGAffineTransform(translationX: translationX, y: translationY)
-            snapshotView.alpha = 0
-            backgroundView.alpha = 0
-          }) { _ in
-            self.cleanup()
-            viewController.dismiss(animated: false)
-          }
+        // Capture window before dismiss for flyoff fallback
+        let window = viewController.view.window
+
+        // Hide background and dismiss in one frame
+        backgroundView.isHidden = true
+        self.snapshotView = nil
+        viewController.dismiss(animated: false)
+
+        // Flyoff fallback if no source available
+        if sourceInfo == nil, let image, let window {
+          animateFlyoff(
+            image: image,
+            translation: translation,
+            velocity: velocity,
+            scale: currentScale,
+            cornerRadius: currentCornerRadius,
+            in: window
+          )
         }
       } else {
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0) {
@@ -118,28 +137,24 @@ class SwipeToDismissInteraction: NSObject {
     image: UIImage,
     sourceInfo: ImageZoomTransition.SourceInfo,
     translation: CGPoint,
-    progress: CGFloat
+    scale: CGFloat,
+    cornerRadius: CGFloat
   ) {
-    guard let viewController, let backgroundView else { return }
+    guard let feedCV = sourceInfo.view.findOutermostCollectionView() else { return }
 
-    let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: viewController.view)
-    let currentScale = 1.0 - progress * maxScaleReduction
-    let visualFrame = CGRect(
-      x: sourceFrame.midX + translation.x - sourceFrame.width * currentScale / 2,
-      y: sourceFrame.midY + translation.y - sourceFrame.height * currentScale / 2,
-      width: sourceFrame.width * currentScale,
-      height: sourceFrame.height * currentScale
+    let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCV)
+    let visualFrameInScreen = CGRect(
+      x: sourceFrame.midX + translation.x - sourceFrame.width * scale / 2,
+      y: sourceFrame.midY + translation.y - sourceFrame.height * scale / 2,
+      width: sourceFrame.width * scale,
+      height: sourceFrame.height * scale
     )
-    let currentCornerRadius = snapshotView?.layer.cornerRadius ?? 0
-
-    snapshotView?.removeFromSuperview()
-    snapshotView = nil
-    sourceInfo.view.alpha = 0
+    let visualFrame = feedCV.convert(visualFrameInScreen, from: nil)
 
     let start = ImageZoomTransition.Endpoint(
       frame: visualFrame,
       imageSize: ImageZoomTransition.aspectFitSize(for: image, in: visualFrame.size),
-      cornerRadius: currentCornerRadius
+      cornerRadius: cornerRadius
     )
     let end = ImageZoomTransition.Endpoint(
       frame: cellFrame,
@@ -151,20 +166,60 @@ class SwipeToDismissInteraction: NSObject {
       image: image,
       from: start,
       to: end,
-      in: viewController.view,
-      alongside: {
-        backgroundView.alpha = 0
-      },
-      completion: {
-        sourceInfo.view.alpha = 1
-        viewController.dismiss(animated: false)
-      }
+      in: feedCV,
+      completion: {}
     )
+  }
+
+  private func animateFlyoff(
+    image: UIImage?,
+    translation: CGPoint,
+    velocity: CGPoint,
+    scale: CGFloat,
+    cornerRadius: CGFloat,
+    in window: UIWindow
+  ) {
+    guard let image else { return }
+
+    let flyoffView = UIImageView(image: image)
+    flyoffView.contentMode = .scaleAspectFit
+    flyoffView.clipsToBounds = true
+    flyoffView.layer.cornerCurve = .continuous
+    flyoffView.layer.cornerRadius = cornerRadius
+    flyoffView.frame = sourceFrame
+    flyoffView.transform = CGAffineTransform(scaleX: scale, y: scale)
+      .concatenating(CGAffineTransform(translationX: translation.x, y: translation.y))
+    window.addSubview(flyoffView)
+
+    let targetX = translation.x + velocity.x * 0.15
+    let targetY = translation.y + velocity.y * 0.15
+
+    UIView.animate(withDuration: 0.25, animations: {
+      flyoffView.transform = CGAffineTransform(translationX: targetX, y: targetY)
+      flyoffView.alpha = 0
+    }) { _ in
+      flyoffView.removeFromSuperview()
+    }
   }
 
   private func cleanup() {
     snapshotView?.removeFromSuperview()
     snapshotView = nil
+  }
+}
+
+extension UIView {
+
+  func findOutermostCollectionView() -> UICollectionView? {
+    var result: UICollectionView?
+    var current: UIView? = superview
+    while let v = current {
+      if let cv = v as? UICollectionView {
+        result = cv
+      }
+      current = v.superview
+    }
+    return result
   }
 }
 

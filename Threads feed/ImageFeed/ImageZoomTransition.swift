@@ -14,7 +14,6 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     let cornerRadius: CGFloat
   }
 
-  var isPresenting = true
   var sourceProvider: ((_ pageIndex: Int) -> SourceInfo?)?
 
   func transitionDuration(using transitionContext: (any UIViewControllerContextTransitioning)?) -> TimeInterval {
@@ -22,11 +21,7 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
   }
 
   func animateTransition(using transitionContext: any UIViewControllerContextTransitioning) {
-    if isPresenting {
-      animatePresentation(using: transitionContext)
-    } else {
-      animateDismissal(using: transitionContext)
-    }
+    animatePresentation(using: transitionContext)
   }
 
   // MARK: - Present
@@ -87,65 +82,6 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
           }
         }
         sourceInfo.view.alpha = 1
-        context.completeTransition(completed)
-      }
-    )
-  }
-
-  // MARK: - Dismiss
-
-  private func animateDismissal(using context: UIViewControllerContextTransitioning) {
-    guard
-      let fromVC = context.viewController(forKey: .from) as? ImagePreviewViewController,
-      let currentImage = fromVC.currentImage,
-      let sourceInfo = sourceProvider?(fromVC.currentPage)
-    else {
-      if let fromVC = context.viewController(forKey: .from) {
-        UIView.animate(withDuration: 0.25) {
-          fromVC.view.alpha = 0
-        } completion: { _ in
-          context.completeTransition(!context.transitionWasCancelled)
-        }
-      } else {
-        context.completeTransition(true)
-      }
-      return
-    }
-
-    let containerView = context.containerView
-    let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: containerView)
-    let screenBounds = fromVC.view.bounds
-
-    fromVC.collectionView.isHidden = true
-    fromVC.closeButton.isHidden = true
-    fromVC.backgroundView.isHidden = true
-    sourceInfo.view.alpha = 0
-
-    let start = Endpoint(
-      frame: screenBounds,
-      imageSize: Self.aspectFitSize(for: currentImage, in: screenBounds.size),
-      cornerRadius: 0
-    )
-    let end = Endpoint(
-      frame: cellFrame,
-      imageSize: Self.aspectFillSize(for: currentImage, in: cellFrame.size),
-      cornerRadius: sourceInfo.cornerRadius
-    )
-
-    Self.animateClipTransition(
-      image: currentImage,
-      from: start,
-      to: end,
-      in: containerView,
-      duration: 0.4,
-      completion: {
-        let completed = !context.transitionWasCancelled
-        sourceInfo.view.alpha = 1
-        if !completed {
-          fromVC.collectionView.isHidden = false
-          fromVC.closeButton.isHidden = false
-          fromVC.backgroundView.isHidden = false
-        }
         context.completeTransition(completed)
       }
     )
