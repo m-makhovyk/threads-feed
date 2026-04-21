@@ -72,7 +72,7 @@ class PostCell: UICollectionViewCell {
       make.leading.trailing.equalToSuperview()
       make.top.equalTo(contentStack.snp.bottom).offset(10)
       make.height.equalTo(LayoutConstants.attachmentHeight)
-      make.bottom.equalToSuperview().offset(-12)
+      make.bottom.equalToSuperview().offset(-12).priority(999)
     }
   }
 
