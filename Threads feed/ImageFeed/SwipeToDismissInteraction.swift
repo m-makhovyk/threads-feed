@@ -140,16 +140,17 @@ class SwipeToDismissInteraction: NSObject {
     scale: CGFloat,
     cornerRadius: CGFloat
   ) {
-    guard let feedCV = sourceInfo.view.findOutermostCollectionView() else { return }
+    guard let viewController,
+          let feedCV = sourceInfo.view.findOutermostCollectionView() else { return }
 
     let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCV)
-    let visualFrameInScreen = CGRect(
+    let visualFrameInPreview = CGRect(
       x: sourceFrame.midX + translation.x - sourceFrame.width * scale / 2,
       y: sourceFrame.midY + translation.y - sourceFrame.height * scale / 2,
       width: sourceFrame.width * scale,
       height: sourceFrame.height * scale
     )
-    let visualFrame = feedCV.convert(visualFrameInScreen, from: nil)
+    let visualFrame = feedCV.convert(visualFrameInPreview, from: viewController.view)
 
     let start = ImageZoomTransition.Endpoint(
       frame: visualFrame,
