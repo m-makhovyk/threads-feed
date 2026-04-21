@@ -19,6 +19,11 @@ class PostCell: UICollectionViewCell {
   private let postTextLabel = UILabel()
   private let attachmentsView = ImageAttachmentsView()
 
+  private var contentStackTopConstraint: Constraint?
+  private var contentStackCenterYConstraint: Constraint?
+  private var attachmentsTopToContentConstraint: Constraint?
+  private var attachmentsTopToAvatarConstraint: Constraint?
+
   override init(frame: CGRect) {
     super.init(frame: frame)
     setupViews()
@@ -64,16 +69,20 @@ class PostCell: UICollectionViewCell {
 
     contentStack.snp.makeConstraints { make in
       make.leading.equalTo(avatarImageView.snp.trailing).offset(LayoutConstants.avatarToContentSpacing)
-      make.top.equalTo(avatarImageView)
       make.trailing.equalToSuperview().offset(-16)
+      contentStackTopConstraint = make.top.equalTo(avatarImageView).constraint
+      contentStackCenterYConstraint = make.centerY.equalTo(avatarImageView).constraint
     }
+    contentStackCenterYConstraint?.deactivate()
 
     attachmentsView.snp.makeConstraints { make in
       make.leading.trailing.equalToSuperview()
-      make.top.equalTo(contentStack.snp.bottom).offset(10)
       make.height.equalTo(LayoutConstants.attachmentHeight)
       make.bottom.equalToSuperview().offset(-12).priority(999)
+      attachmentsTopToContentConstraint = make.top.equalTo(contentStack.snp.bottom).constraint
+      attachmentsTopToAvatarConstraint = make.top.equalTo(avatarImageView.snp.bottom).constraint
     }
+    attachmentsTopToAvatarConstraint?.deactivate()
   }
 
   func configure(with post: Post) {
@@ -81,15 +90,23 @@ class PostCell: UICollectionViewCell {
     usernameLabel.text = post.author.username
     dateLabel.text = post.createdAt.relativeFormatted()
 
-    postTextLabel.isHidden = post.text == nil
+    let hasText = post.text != nil
+    postTextLabel.isHidden = !hasText
     postTextLabel.text = post.text
+
+    contentStackTopConstraint?.isActive = hasText
+    contentStackCenterYConstraint?.isActive = !hasText
 
     let attachmentHeight = attachmentHeight(for: post.attachments)
     let hasAttachments = attachmentHeight > 0
     attachmentsView.isHidden = !hasAttachments
+    attachmentsTopToContentConstraint?.isActive = hasText
+    attachmentsTopToAvatarConstraint?.isActive = !hasText
+    let topOffset = hasAttachments ? 10 : 0
+    attachmentsTopToContentConstraint?.update(offset: topOffset)
+    attachmentsTopToAvatarConstraint?.update(offset: topOffset)
     attachmentsView.snp.updateConstraints { make in
       make.height.equalTo(attachmentHeight)
-      make.top.equalTo(contentStack.snp.bottom).offset(hasAttachments ? 10 : 0)
     }
     if hasAttachments {
       attachmentsView.configure(with: post.attachments)
