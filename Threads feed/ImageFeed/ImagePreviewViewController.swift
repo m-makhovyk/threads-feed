@@ -9,6 +9,9 @@ class ImagePreviewViewController: UIViewController {
   private var swipeToDismiss: SwipeToDismissInteraction?
   let zoomTransition = ImageZoomTransition()
 
+  var onPageChange: ((Int) -> Void)?
+  private var lastReportedPage: Int
+
   var imageCount: Int {
     imageURLs.count
   }
@@ -61,6 +64,7 @@ class ImagePreviewViewController: UIViewController {
   init(imageURLs: [URL], initialIndex: Int) {
     self.imageURLs = imageURLs
     self.initialIndex = initialIndex
+    self.lastReportedPage = initialIndex
     super.init(nibName: nil, bundle: nil)
     modalPresentationStyle = .overFullScreen
     transitioningDelegate = self
@@ -179,6 +183,13 @@ extension ImagePreviewViewController: UICollectionViewDelegateFlowLayout {
     sizeForItemAt indexPath: IndexPath
   ) -> CGSize {
     collectionView.bounds.size
+  }
+
+  func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    let page = currentPage
+    guard page != lastReportedPage else { return }
+    lastReportedPage = page
+    onPageChange?(page)
   }
 }
 

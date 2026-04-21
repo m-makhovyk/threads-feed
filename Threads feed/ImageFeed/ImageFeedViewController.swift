@@ -68,6 +68,9 @@ extension ImageFeedViewController: UICollectionViewDataSource {
         guard let self else { return nil }
         return self.sourceInfo(forPage: pageIndex, at: indexPath, previewImage: preview?.currentImage)
       }
+      preview.onPageChange = { [weak cell] page in
+        cell?.scrollToAttachment(at: page, animated: false)
+      }
       self.present(preview, animated: true)
     }
     return cell

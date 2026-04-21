@@ -100,6 +100,10 @@ class PostCell: UICollectionViewCell {
     attachmentsView.imageView(at: index)
   }
 
+  func scrollToAttachment(at index: Int, animated: Bool) {
+    attachmentsView.scrollToImage(at: index, animated: animated)
+  }
+
   func image(forAttachmentAt index: Int) -> UIImage? {
     attachmentsView.image(at: index)
   }

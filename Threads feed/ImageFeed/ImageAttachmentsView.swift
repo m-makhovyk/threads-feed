@@ -54,6 +54,15 @@ class ImageAttachmentsView: UIView {
     collectionView.isScrollEnabled = attachments.count > 1
   }
 
+  func scrollToImage(at index: Int, animated: Bool) {
+    guard attachments.indices.contains(index) else { return }
+    let indexPath = IndexPath(item: index, section: 0)
+    collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
+    if !animated {
+      collectionView.layoutIfNeeded()
+    }
+  }
+
   func imageView(at index: Int) -> UIView? {
     let indexPath = IndexPath(item: index, section: 0)
     guard let cell = collectionView.cellForItem(at: indexPath) as? AttachmentImageCell else { return nil }
