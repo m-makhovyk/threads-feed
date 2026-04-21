@@ -5,11 +5,11 @@ Experimental iOS project — reimplementing a Threads-like feed with media previ
 ## Roadmap
 
 ### Image feed
-- [ ] Feed with image attachments
-- [ ] Full-screen image preview
-- [ ] Custom transition to full-screen preview
-- [ ] Swipe to dismiss
-- [ ] Pinch to zoom
+- [x] Feed with image attachments
+- [x] Full-screen image preview
+- [x] Custom transition to full-screen preview
+- [x] Swipe to dismiss
+- [x] Pinch to zoom
 
 ### Video feed
 - [ ] Feed with video attachments
