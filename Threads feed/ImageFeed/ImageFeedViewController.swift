@@ -71,6 +71,12 @@ extension ImageFeedViewController: UICollectionViewDataSource {
       preview.onPageChange = { [weak cell] page in
         cell?.scrollToAttachment(at: page, animated: false)
       }
+      preview.onBlackoutIndex = { [weak cell] index in
+        cell?.setBlackedOutAttachment(at: index)
+      }
+      preview.onClearBlackout = { [weak cell] in
+        cell?.clearBlackoutAttachment()
+      }
       self.present(preview, animated: true)
     }
     return cell

@@ -8,6 +8,7 @@ class ImageAttachmentsView: UIView {
 
   private var collectionView: UICollectionView!
   private var attachments: [ImageAttachment] = []
+  private var blackedOutIndex: Int?
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -49,9 +50,31 @@ class ImageAttachmentsView: UIView {
 
   func configure(with attachments: [ImageAttachment]) {
     self.attachments = attachments
+    blackedOutIndex = nil
     collectionView.reloadData()
     collectionView.contentOffset = CGPoint(x: -LayoutConstants.contentLeadingInset, y: 0)
     collectionView.isScrollEnabled = attachments.count > 1
+  }
+
+  func setBlackedOut(at index: Int) {
+    blackedOutIndex = index
+    for indexPath in collectionView.indexPathsForVisibleItems {
+      guard let cell = collectionView.cellForItem(at: indexPath) as? AttachmentImageCell else { continue }
+      cell.setBlackedOut(indexPath.item == index)
+    }
+  }
+
+  func clearBlackOut() {
+    defer {
+      blackedOutIndex = nil
+    }
+
+    guard let blackedOutIndex else { return }
+
+    let indexPath = IndexPath(item: blackedOutIndex, section: 0)
+    if let cell = collectionView.cellForItem(at: indexPath) as? AttachmentImageCell {
+      cell.setBlackedOut(false)
+    }
   }
 
   func scrollToImage(at index: Int, animated: Bool) {
@@ -96,6 +119,7 @@ extension ImageAttachmentsView: UICollectionViewDataSource {
       for: indexPath
     ) as! AttachmentImageCell
     cell.configure(with: attachments[indexPath.item].url)
+    cell.setBlackedOut(indexPath.item == blackedOutIndex)
     return cell
   }
 }
@@ -133,6 +157,7 @@ private class AttachmentImageCell: UICollectionViewCell {
   static let reuseID = "AttachmentImageCell"
 
   let lazyImageView = LazyImageView()
+  private let blackoutView = UIView()
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -143,7 +168,16 @@ private class AttachmentImageCell: UICollectionViewCell {
     lazyImageView.placeholderView = makePlaceholder()
     contentView.addSubview(lazyImageView)
 
+    blackoutView.backgroundColor = .black
+    blackoutView.layer.cornerRadius = LayoutConstants.attachmentCornerRadius
+    blackoutView.isHidden = true
+    contentView.addSubview(blackoutView)
+
     lazyImageView.snp.makeConstraints { make in
+      make.edges.equalToSuperview()
+    }
+
+    blackoutView.snp.makeConstraints { make in
       make.edges.equalToSuperview()
     }
   }
@@ -156,9 +190,16 @@ private class AttachmentImageCell: UICollectionViewCell {
     lazyImageView.url = url
   }
 
+  func setBlackedOut(_ blacked: Bool) {
+    blackoutView.isHidden = !blacked
+    lazyImageView.isHidden = blacked
+  }
+
   override func prepareForReuse() {
     super.prepareForReuse()
     lazyImageView.url = nil
+    lazyImageView.isHidden = false
+    blackoutView.isHidden = true
   }
 
   private func makePlaceholder() -> UIView {

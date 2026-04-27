@@ -125,6 +125,14 @@ class PostCell: UICollectionViewCell {
     attachmentsView.image(at: index)
   }
 
+  func setBlackedOutAttachment(at index: Int) {
+    attachmentsView.setBlackedOut(at: index)
+  }
+
+  func clearBlackoutAttachment() {
+    attachmentsView.clearBlackOut()
+  }
+
   private func attachmentHeight(for attachments: [ImageAttachment]) -> CGFloat {
     guard !attachments.isEmpty else { return 0 }
     guard attachments.count == 1 else { return LayoutConstants.attachmentHeight }

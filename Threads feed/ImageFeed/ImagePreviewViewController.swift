@@ -10,6 +10,8 @@ class ImagePreviewViewController: UIViewController {
   let zoomTransition = ImageZoomTransition()
 
   var onPageChange: ((Int) -> Void)?
+  var onBlackoutIndex: ((Int) -> Void)?
+  var onClearBlackout: (() -> Void)?
   private var lastReportedPage: Int
 
   var imageCount: Int {
@@ -121,6 +123,7 @@ class ImagePreviewViewController: UIViewController {
 
     let image = currentImage
     let sourceInfo = zoomTransition.sourceProvider?(currentPage)
+    let clearBlackout = onClearBlackout
 
     // Start clip animation on feed (behind preview, not visible yet)
     if let image, let sourceInfo,
@@ -144,8 +147,12 @@ class ImagePreviewViewController: UIViewController {
         from: start,
         to: end,
         in: feedCV,
-        completion: {}
+        completion: {
+          clearBlackout?()
+        }
       )
+    } else {
+      clearBlackout?()
     }
 
     dismiss(animated: false)
@@ -190,6 +197,7 @@ extension ImagePreviewViewController: UICollectionViewDelegateFlowLayout {
     guard page != lastReportedPage else { return }
     lastReportedPage = page
     onPageChange?(page)
+    onBlackoutIndex?(page)
   }
 }
 

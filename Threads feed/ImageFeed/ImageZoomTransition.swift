@@ -52,6 +52,7 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     toVC.collectionView.alpha = 0
     toVC.closeButton.alpha = 0
     sourceInfo.view.alpha = 0
+    toVC.onBlackoutIndex?(toVC.initialIndex)
 
     let start = Endpoint(
       frame: cellFrame,

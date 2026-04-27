@@ -93,6 +93,8 @@ class SwipeToDismissInteraction: NSObject {
             scale: currentScale,
             cornerRadius: currentCornerRadius
           )
+        } else {
+          viewController.onClearBlackout?()
         }
 
         // Capture window before dismiss for flyoff fallback
@@ -141,7 +143,12 @@ class SwipeToDismissInteraction: NSObject {
     cornerRadius: CGFloat
   ) {
     guard let viewController,
-          let feedCV = sourceInfo.view.findOutermostCollectionView() else { return }
+          let feedCV = sourceInfo.view.findOutermostCollectionView() else {
+      self.viewController?.onClearBlackout?()
+      return
+    }
+
+    let clearBlackout = viewController.onClearBlackout
 
     let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCV)
     let visualFrameInPreview = CGRect(
@@ -168,7 +175,9 @@ class SwipeToDismissInteraction: NSObject {
       from: start,
       to: end,
       in: feedCV,
-      completion: {}
+      completion: {
+        clearBlackout?()
+      }
     )
   }
 
