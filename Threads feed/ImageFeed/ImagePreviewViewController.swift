@@ -6,22 +6,21 @@ class ImagePreviewViewController: UIViewController {
   private let imageURLs: [URL]
   let initialIndex: Int
   private var hasScrolledToInitialPage = false
+  private var lastCollectionViewSize: CGSize = .zero
+  private var currentPageIndex: Int
   private var swipeToDismiss: SwipeToDismissInteraction?
   let zoomTransition = ImageZoomTransition()
 
   var onPageChange: ((Int) -> Void)?
   var onBlackoutIndex: ((Int) -> Void)?
   var onClearBlackout: (() -> Void)?
-  private var lastReportedPage: Int
 
   var imageCount: Int {
     imageURLs.count
   }
 
   var currentPage: Int {
-    guard collectionView.bounds.width > 0 else { return initialIndex }
-    let page = Int(round(collectionView.contentOffset.x / collectionView.bounds.width))
-    return min(max(page, 0), imageURLs.count - 1)
+    currentPageIndex
   }
 
   var currentImage: UIImage? {
@@ -66,7 +65,7 @@ class ImagePreviewViewController: UIViewController {
   init(imageURLs: [URL], initialIndex: Int) {
     self.imageURLs = imageURLs
     self.initialIndex = initialIndex
-    self.lastReportedPage = initialIndex
+    self.currentPageIndex = initialIndex
     super.init(nibName: nil, bundle: nil)
     modalPresentationStyle = .overFullScreen
     transitioningDelegate = self
@@ -108,10 +107,20 @@ class ImagePreviewViewController: UIViewController {
 
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    guard !hasScrolledToInitialPage, initialIndex > 0, collectionView.bounds.width > 0 else { return }
+
+    let collectionViewSize = collectionView.bounds.size
+    guard collectionViewSize.width > 0, collectionViewSize.height > 0 else { return }
+
+    let sizeChanged = collectionViewSize != lastCollectionViewSize
+    guard !hasScrolledToInitialPage || sizeChanged else { return }
+
     hasScrolledToInitialPage = true
-    let offset = CGFloat(initialIndex) * collectionView.bounds.width
-    collectionView.contentOffset = CGPoint(x: offset, y: 0)
+    lastCollectionViewSize = collectionViewSize
+    collectionView.collectionViewLayout.invalidateLayout()
+    collectionView.contentOffset = CGPoint(
+      x: CGFloat(currentPageIndex) * collectionViewSize.width,
+      y: 0
+    )
   }
 
   override var prefersStatusBarHidden: Bool {
@@ -193,11 +202,36 @@ extension ImagePreviewViewController: UICollectionViewDelegateFlowLayout {
   }
 
   func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-    let page = currentPage
-    guard page != lastReportedPage else { return }
-    lastReportedPage = page
-    onPageChange?(page)
-    onBlackoutIndex?(page)
+    reportCurrentPageIfNeeded()
+  }
+
+  func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    guard !decelerate else { return }
+    reportCurrentPageIfNeeded()
+  }
+
+  func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+    reportCurrentPageIfNeeded()
+  }
+
+  private func reportCurrentPageIfNeeded(_ page: Int? = nil) {
+    let resolvedPage = page ?? pageForCurrentContentOffset()
+    guard resolvedPage != currentPageIndex else { return }
+
+    currentPageIndex = resolvedPage
+    onPageChange?(resolvedPage)
+    onBlackoutIndex?(resolvedPage)
+  }
+
+  private func pageForCurrentContentOffset() -> Int {
+    guard collectionView.bounds.width > 0 else { return currentPageIndex }
+
+    let rawPage = collectionView.contentOffset.x / collectionView.bounds.width
+    return clampedPage(Int(round(rawPage)))
+  }
+
+  private func clampedPage(_ page: Int) -> Int {
+    min(max(page, 0), imageURLs.count - 1)
   }
 }
 
