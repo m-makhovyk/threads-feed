@@ -56,6 +56,14 @@ class ImageAttachmentsView: UIView {
     collectionView.isScrollEnabled = attachments.count > 1
   }
 
+  func reset() {
+    attachments = []
+    blackedOutIndex = nil
+    collectionView.reloadData()
+    collectionView.contentOffset = CGPoint(x: -LayoutConstants.contentLeadingInset, y: 0)
+    collectionView.isScrollEnabled = false
+  }
+
   func setBlackedOut(at index: Int) {
     blackedOutIndex = index
     for indexPath in collectionView.indexPathsForVisibleItems {
@@ -64,7 +72,7 @@ class ImageAttachmentsView: UIView {
     }
   }
 
-  func clearBlackOut() {
+  func clearBlackout() {
     defer {
       blackedOutIndex = nil
     }

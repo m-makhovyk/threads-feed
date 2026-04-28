@@ -33,6 +33,20 @@ class PostCell: UICollectionViewCell {
     fatalError("init(coder:) has not been implemented")
   }
 
+  override func prepareForReuse() {
+    super.prepareForReuse()
+
+    onImageTapped = nil
+    avatarImageView.url = nil
+    usernameLabel.text = nil
+    dateLabel.text = nil
+    postTextLabel.text = nil
+    postTextLabel.isHidden = false
+
+    attachmentsView.isHidden = true
+    attachmentsView.reset()
+  }
+
   private func setupViews() {
     avatarImageView.contentMode = .scaleAspectFill
     avatarImageView.clipsToBounds = true
@@ -110,6 +124,8 @@ class PostCell: UICollectionViewCell {
     }
     if hasAttachments {
       attachmentsView.configure(with: post.attachments)
+    } else {
+      attachmentsView.reset()
     }
   }
 
@@ -130,7 +146,7 @@ class PostCell: UICollectionViewCell {
   }
 
   func clearBlackoutAttachment() {
-    attachmentsView.clearBlackOut()
+    attachmentsView.clearBlackout()
   }
 
   private func attachmentHeight(for attachments: [ImageAttachment]) -> CGFloat {
