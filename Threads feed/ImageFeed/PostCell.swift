@@ -90,7 +90,7 @@ class PostCell: UICollectionViewCell {
     usernameLabel.text = post.author.username
     dateLabel.text = post.createdAt.relativeFormatted()
 
-    let hasText = post.text != nil
+    let hasText = post.text?.isEmpty == false
     postTextLabel.isHidden = !hasText
     postTextLabel.text = post.text
 
