@@ -32,7 +32,7 @@ class ImageAttachmentsView: UIView {
     collectionView.backgroundColor = .clear
     collectionView.register(
       AttachmentImageCell.self,
-      forCellWithReuseIdentifier: AttachmentImageCell.reuseID
+      forCellWithReuseIdentifier: AttachmentImageCell.reuseIdentifier
     )
     addSubview(collectionView)
 
@@ -115,7 +115,7 @@ extension ImageAttachmentsView: UICollectionViewDataSource {
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(
-      withReuseIdentifier: AttachmentImageCell.reuseID,
+      withReuseIdentifier: AttachmentImageCell.reuseIdentifier,
       for: indexPath
     ) as! AttachmentImageCell
     cell.configure(with: attachments[indexPath.item].url)
@@ -154,7 +154,7 @@ extension ImageAttachmentsView: UICollectionViewDelegateFlowLayout {
 
 private class AttachmentImageCell: UICollectionViewCell {
 
-  static let reuseID = "AttachmentImageCell"
+  static let reuseIdentifier = "AttachmentImageCell"
 
   let lazyImageView = LazyImageView()
   private let blackoutView = UIView()

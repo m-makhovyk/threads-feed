@@ -3,7 +3,7 @@ import Nuke
 
 class ZoomableImageCell: UICollectionViewCell {
 
-  static let reuseID = "ZoomableImageCell"
+  static let reuseIdentifier = "ZoomableImageCell"
 
   var isZoomed: Bool {
     scrollView.zoomScale > scrollView.minimumZoomScale + 0.01

@@ -48,7 +48,7 @@ class ImagePreviewViewController: UIViewController {
     cv.isPagingEnabled = true
     cv.showsHorizontalScrollIndicator = false
     cv.backgroundColor = .clear
-    cv.register(ZoomableImageCell.self, forCellWithReuseIdentifier: ZoomableImageCell.reuseID)
+    cv.register(ZoomableImageCell.self, forCellWithReuseIdentifier: ZoomableImageCell.reuseIdentifier)
     return cv
   }()
 
@@ -174,7 +174,7 @@ extension ImagePreviewViewController: UICollectionViewDataSource {
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(
-      withReuseIdentifier: ZoomableImageCell.reuseID,
+      withReuseIdentifier: ZoomableImageCell.reuseIdentifier,
       for: indexPath
     ) as! ZoomableImageCell
     cell.configure(with: imageURLs[indexPath.item])
