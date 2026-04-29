@@ -17,12 +17,12 @@ final class ImagePreviewDismissAnimator {
 
       let start = ImageZoomTransition.Endpoint(
         frame: visualFrame,
-        imageSize: ImageZoomTransition.aspectFitSize(for: image, in: visualFrame.size),
+        imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: visualFrame.size),
         cornerRadius: 0
       )
       let end = ImageZoomTransition.Endpoint(
         frame: cellFrame,
-        imageSize: ImageZoomTransition.aspectFillSize(for: image, in: cellFrame.size),
+        imageSize: AspectGeometry.aspectFillSize(contentSize: image.size, boundingSize: cellFrame.size),
         cornerRadius: sourceInfo.cornerRadius
       )
 
@@ -40,5 +40,34 @@ final class ImagePreviewDismissAnimator {
     }
 
     viewController.dismiss(animated: false)
+  }
+}
+
+
+enum AspectGeometry {
+  static func aspectFillSize(contentSize: CGSize, boundingSize: CGSize) -> CGSize {
+    guard contentSize.height > 0, boundingSize.height > 0 else { return boundingSize }
+
+    let contentSizeRatio = contentSize.width / contentSize.height
+    let boundingSizeRatio = boundingSize.width / boundingSize.height
+
+    if contentSizeRatio > boundingSizeRatio {
+      return CGSize(width: boundingSize.height * contentSizeRatio, height: boundingSize.height)
+    } else {
+      return CGSize(width: boundingSize.width, height: boundingSize.width / contentSizeRatio)
+    }
+  }
+
+  static func aspectFitSize(contentSize: CGSize, boundingSize: CGSize) -> CGSize {
+    guard contentSize.height > 0, boundingSize.height > 0 else { return boundingSize }
+
+    let contentSizeRatio = contentSize.width / contentSize.height
+    let boundingSizeRatio = boundingSize.width / boundingSize.height
+    
+    if contentSizeRatio > boundingSizeRatio {
+      return CGSize(width: boundingSize.width, height: boundingSize.width / contentSizeRatio)
+    } else {
+      return CGSize(width: boundingSize.height * contentSizeRatio, height: boundingSize.height)
+    }
   }
 }
