@@ -7,7 +7,7 @@ final class ImagePreviewDismissAnimator {
 
     let image = viewController.currentImage
     let sourceInfo = viewController.zoomTransition.sourceProvider?(viewController.currentPage)
-    let clearBlackout = viewController.onClearBlackout
+    let completion = viewController.onClearBlackout
 
     // Start clip animation on feed (behind preview, not visible yet)
     if let image, let sourceInfo,
@@ -32,11 +32,11 @@ final class ImagePreviewDismissAnimator {
         to: end,
         in: feedCV,
         completion: {
-          clearBlackout?()
+          completion?()
         }
       )
     } else {
-      clearBlackout?()
+      completion?()
     }
 
     viewController.dismiss(animated: false)
