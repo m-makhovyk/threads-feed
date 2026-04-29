@@ -129,6 +129,7 @@ class ImagePreviewViewController: UIViewController {
   }
 
   @objc private func closeTapped() {
+    closeButton.isEnabled = false
     swipeToDismiss?.disable()
     dismissAnimator.dismissFromCurrentPreviewImage(from: self)
   }
