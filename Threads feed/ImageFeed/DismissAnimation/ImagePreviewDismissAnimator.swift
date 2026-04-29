@@ -13,7 +13,7 @@ final class ImagePreviewDismissAnimator {
     if let image, let sourceInfo,
        let feedCV = sourceInfo.view.findOutermostCollectionView() {
       let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCV)
-      let visualFrame = feedCV.convert(viewController.view.bounds, from: nil)
+      let visualFrame = feedCV.convert(viewController.view.bounds, from: viewController.view)
 
       let start = ImageZoomTransition.Endpoint(
         frame: visualFrame,
