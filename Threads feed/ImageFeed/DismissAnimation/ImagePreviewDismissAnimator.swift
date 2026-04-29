@@ -3,14 +3,7 @@ import UIKit
 
 final class ImagePreviewDismissAnimator {
 
-  private weak var viewController: ImagePreviewViewController?
-
-  init(viewController: ImagePreviewViewController) {
-    self.viewController = viewController
-  }
-
-  func dismissFromCurrentPreviewImage() {
-    guard let viewController else { return }
+  func dismissFromCurrentPreviewImage(from viewController: ImagePreviewViewController) {
 
     let image = viewController.currentImage
     let sourceInfo = viewController.zoomTransition.sourceProvider?(viewController.currentPage)
