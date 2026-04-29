@@ -4,46 +4,46 @@ import UIKit
 final class ImagePreviewDismissAnimator {
 
   func dismissFromCurrentPreviewImage(from viewController: ImagePreviewViewController) {
-
-    let image = viewController.currentImage
-    let sourceInfo = viewController.zoomTransition.sourceProvider?(viewController.currentPage)
     let completion = viewController.onClearBlackout
 
-    // Start clip animation on feed (behind preview, not visible yet)
-    if let image, let sourceInfo,
-       let feedCV = sourceInfo.view.findOutermostCollectionView() {
-      let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCV)
-      let visualFrame = feedCV.convert(viewController.view.bounds, from: viewController.view)
-      let startImageFrame = viewController.currentCell.map { cell in
-        let imageFrameInPreview = cell.imageFrame(in: viewController.view)
-        let imageFrame = feedCV.convert(imageFrameInPreview, from: viewController.view)
-        return imageFrame.offsetBy(dx: -visualFrame.minX, dy: -visualFrame.minY)
-      }
-
-      let start = ImageZoomTransition.Endpoint(
-        frame: visualFrame,
-        imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: visualFrame.size),
-        cornerRadius: 0,
-        imageFrame: startImageFrame
-      )
-      let end = ImageZoomTransition.Endpoint(
-        frame: cellFrame,
-        imageSize: AspectGeometry.aspectFillSize(contentSize: image.size, boundingSize: cellFrame.size),
-        cornerRadius: sourceInfo.cornerRadius
-      )
-
-      ImageZoomTransition.animateClipTransition(
-        image: image,
-        from: start,
-        to: end,
-        in: feedCV,
-        completion: {
-          completion?()
-        }
-      )
-    } else {
+    guard let image = viewController.currentImage,
+          let sourceInfo = viewController.zoomTransition.sourceProvider?(viewController.currentPage),
+          let feedCollectionView = sourceInfo.view.findOutermostCollectionView() else {
       completion?()
+      viewController.dismiss(animated: false)
+      return
     }
+
+    // Start clip animation on feed (behind preview, not visible yet)
+    let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCollectionView)
+    let visualFrame = feedCollectionView.convert(viewController.view.bounds, from: viewController.view)
+    let startImageFrame = viewController.currentCell.map { cell in
+      let imageFrameInPreview = cell.imageFrame(in: viewController.view)
+      let imageFrame = feedCollectionView.convert(imageFrameInPreview, from: viewController.view)
+      return imageFrame.offsetBy(dx: -visualFrame.minX, dy: -visualFrame.minY)
+    }
+
+    let start = ImageZoomTransition.Endpoint(
+      frame: visualFrame,
+      imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: visualFrame.size),
+      cornerRadius: 0,
+      imageFrame: startImageFrame
+    )
+    let end = ImageZoomTransition.Endpoint(
+      frame: cellFrame,
+      imageSize: AspectGeometry.aspectFillSize(contentSize: image.size, boundingSize: cellFrame.size),
+      cornerRadius: sourceInfo.cornerRadius
+    )
+
+    ImageZoomTransition.animateClipTransition(
+      image: image,
+      from: start,
+      to: end,
+      in: feedCollectionView,
+      completion: {
+        completion?()
+      }
+    )
 
     viewController.dismiss(animated: false)
   }
