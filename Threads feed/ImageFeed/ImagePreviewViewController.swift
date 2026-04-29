@@ -9,6 +9,7 @@ class ImagePreviewViewController: UIViewController {
   private var lastCollectionViewSize: CGSize = .zero
   private var currentPageIndex: Int
   private var swipeToDismiss: SwipeToDismissInteraction?
+  private lazy var dismissAnimator = ImagePreviewDismissAnimator(viewController: self)
   let zoomTransition = ImageZoomTransition()
 
   var onPageChange: ((Int) -> Void)?
@@ -129,42 +130,7 @@ class ImagePreviewViewController: UIViewController {
 
   @objc private func closeTapped() {
     swipeToDismiss?.disable()
-
-    let image = currentImage
-    let sourceInfo = zoomTransition.sourceProvider?(currentPage)
-    let clearBlackout = onClearBlackout
-
-    // Start clip animation on feed (behind preview, not visible yet)
-    if let image, let sourceInfo,
-       let feedCV = sourceInfo.view.findOutermostCollectionView() {
-      let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCV)
-      let visualFrame = feedCV.convert(view.bounds, from: nil)
-
-      let start = ImageZoomTransition.Endpoint(
-        frame: visualFrame,
-        imageSize: ImageZoomTransition.aspectFitSize(for: image, in: visualFrame.size),
-        cornerRadius: 0
-      )
-      let end = ImageZoomTransition.Endpoint(
-        frame: cellFrame,
-        imageSize: ImageZoomTransition.aspectFillSize(for: image, in: cellFrame.size),
-        cornerRadius: sourceInfo.cornerRadius
-      )
-
-      ImageZoomTransition.animateClipTransition(
-        image: image,
-        from: start,
-        to: end,
-        in: feedCV,
-        completion: {
-          clearBlackout?()
-        }
-      )
-    } else {
-      clearBlackout?()
-    }
-
-    dismiss(animated: false)
+    dismissAnimator.dismissFromCurrentPreviewImage()
   }
 
 }
