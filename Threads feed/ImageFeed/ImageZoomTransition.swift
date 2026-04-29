@@ -12,6 +12,19 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     let frame: CGRect
     let imageSize: CGSize
     let cornerRadius: CGFloat
+    let imageFrame: CGRect?
+
+    init(
+      frame: CGRect,
+      imageSize: CGSize,
+      cornerRadius: CGFloat,
+      imageFrame: CGRect? = nil
+    ) {
+      self.frame = frame
+      self.imageSize = imageSize
+      self.cornerRadius = cornerRadius
+      self.imageFrame = imageFrame
+    }
   }
 
   var sourceProvider: ((_ pageIndex: Int) -> SourceInfo?)?
@@ -106,7 +119,7 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     containerView.addSubview(clipView)
 
     let imageView = UIImageView(image: image)
-    imageView.frame = centeredRect(size: start.imageSize, in: start.frame.size)
+    imageView.frame = start.imageFrame ?? centeredRect(size: start.imageSize, in: start.frame.size)
     imageView.clipsToBounds = true
     imageView.layer.cornerRadius = end.cornerRadius
     clipView.addSubview(imageView)
@@ -119,7 +132,7 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     ) {
       clipView.frame = end.frame
       clipView.layer.cornerRadius = end.cornerRadius
-      imageView.frame = centeredRect(size: end.imageSize, in: end.frame.size)
+      imageView.frame = end.imageFrame ?? centeredRect(size: end.imageSize, in: end.frame.size)
       imageView.layer.cornerRadius = 0
       alongside()
     } completion: { _ in

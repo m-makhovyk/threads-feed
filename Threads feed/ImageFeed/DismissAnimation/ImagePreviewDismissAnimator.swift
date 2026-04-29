@@ -14,11 +14,17 @@ final class ImagePreviewDismissAnimator {
        let feedCV = sourceInfo.view.findOutermostCollectionView() {
       let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCV)
       let visualFrame = feedCV.convert(viewController.view.bounds, from: viewController.view)
+      let startImageFrame = viewController.currentCell.map { cell in
+        let imageFrameInPreview = cell.imageFrame(in: viewController.view)
+        let imageFrame = feedCV.convert(imageFrameInPreview, from: viewController.view)
+        return imageFrame.offsetBy(dx: -visualFrame.minX, dy: -visualFrame.minY)
+      }
 
       let start = ImageZoomTransition.Endpoint(
         frame: visualFrame,
         imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: visualFrame.size),
-        cornerRadius: 0
+        cornerRadius: 0,
+        imageFrame: startImageFrame
       )
       let end = ImageZoomTransition.Endpoint(
         frame: cellFrame,
