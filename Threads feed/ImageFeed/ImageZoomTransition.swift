@@ -27,10 +27,12 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     }
   }
 
+  static let animationDuration: TimeInterval = 0.45
+
   var sourceProvider: ((_ pageIndex: Int) -> SourceInfo?)?
 
   func transitionDuration(using transitionContext: (any UIViewControllerContextTransitioning)?) -> TimeInterval {
-    0.45
+    Self.animationDuration
   }
 
   func animateTransition(using transitionContext: any UIViewControllerContextTransitioning) {
@@ -108,7 +110,7 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     from start: Endpoint,
     to end: Endpoint,
     in containerView: UIView,
-    duration: TimeInterval = 0.4,
+    duration: TimeInterval = ImageZoomTransition.animationDuration,
     alongside: @escaping () -> Void = {},
     completion: @escaping () -> Void = {}
   ) {
