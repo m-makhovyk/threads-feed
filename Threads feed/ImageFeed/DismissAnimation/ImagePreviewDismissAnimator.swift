@@ -53,6 +53,53 @@ final class ImagePreviewDismissAnimator {
 
     viewController.dismiss(animated: false)
   }
+
+  func finishInteractiveDismiss(
+    image: UIImage,
+    sourceInfo: ImageZoomTransition.SourceInfo,
+    initialSnapshotFrame: CGRect,
+    translation: CGPoint,
+    scale: CGFloat,
+    cornerRadius: CGFloat,
+    viewController: ImagePreviewViewController
+  ) {
+    guard let feedCollectionView = sourceInfo.view.findOutermostCollectionView() else {
+      viewController.onClearBlackout?()
+      return
+    }
+
+    let clearBlackout = viewController.onClearBlackout
+
+    let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCollectionView)
+    let visualFrameInPreview = CGRect(
+      x: initialSnapshotFrame.midX + translation.x - initialSnapshotFrame.width * scale / 2,
+      y: initialSnapshotFrame.midY + translation.y - initialSnapshotFrame.height * scale / 2,
+      width: initialSnapshotFrame.width * scale,
+      height: initialSnapshotFrame.height * scale
+    )
+    let visualFrame = feedCollectionView.convert(visualFrameInPreview, from: viewController.view)
+
+    let start = ImageZoomTransition.Endpoint(
+      frame: visualFrame,
+      imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: visualFrame.size),
+      cornerRadius: cornerRadius
+    )
+    let end = ImageZoomTransition.Endpoint(
+      frame: cellFrame,
+      imageSize: AspectGeometry.aspectFillSize(contentSize: image.size, boundingSize: cellFrame.size),
+      cornerRadius: sourceInfo.cornerRadius
+    )
+
+    ImageZoomTransition.animateClipTransition(
+      image: image,
+      from: start,
+      to: end,
+      in: feedCollectionView,
+      completion: {
+        clearBlackout?()
+      }
+    )
+  }
 }
 
 
