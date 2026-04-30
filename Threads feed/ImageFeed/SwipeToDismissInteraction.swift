@@ -6,10 +6,13 @@ class SwipeToDismissInteraction: NSObject {
   private weak var backgroundView: UIView?
   private weak var closeButton: UIView?
 
+  // Diagonal drag distance past which the gesture commits to dismissing on release.
   private let dismissThreshold: CGFloat = 100
   private let velocityThreshold: CGFloat = 800
   private let maxScaleReduction: CGFloat = 0.2
   private let maxCornerRadius: CGFloat = 24
+  // Diagonal drag distance at which scale/corner/background-alpha effects saturate;
+  // dragging further keeps moving the image but stops changing those visuals.
   private let maxDistance: CGFloat = 300
 
   private var panGesture: UIPanGestureRecognizer!
