@@ -10,20 +10,19 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
 
   struct Endpoint {
     let frame: CGRect
-    let imageSize: CGSize
+    let imageFrame: CGRect
     let cornerRadius: CGFloat
-    let imageFrame: CGRect?
 
-    init(
+    static func centered(
       frame: CGRect,
       imageSize: CGSize,
-      cornerRadius: CGFloat,
-      imageFrame: CGRect? = nil
-    ) {
-      self.frame = frame
-      self.imageSize = imageSize
-      self.cornerRadius = cornerRadius
-      self.imageFrame = imageFrame
+      cornerRadius: CGFloat
+    ) -> Self {
+      Endpoint(
+        frame: frame,
+        imageFrame: AspectGeometry.centeredRect(size: imageSize, in: frame.size),
+        cornerRadius: cornerRadius
+      )
     }
   }
 
@@ -69,12 +68,12 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     sourceInfo.view.alpha = 0
     toVC.onBlackoutIndex?(toVC.initialIndex)
 
-    let start = Endpoint(
+    let start = Endpoint.centered(
       frame: cellFrame,
       imageSize: AspectGeometry.aspectFillSize(contentSize: image.size, boundingSize: cellFrame.size),
       cornerRadius: sourceInfo.cornerRadius
     )
-    let end = Endpoint(
+    let end = Endpoint.centered(
       frame: screenBounds,
       imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: screenBounds.size),
       cornerRadius: sourceInfo.cornerRadius
@@ -121,7 +120,7 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     containerView.addSubview(clipView)
 
     let imageView = UIImageView(image: image)
-    imageView.frame = start.imageFrame ?? centeredRect(size: start.imageSize, in: start.frame.size)
+    imageView.frame = start.imageFrame
     imageView.clipsToBounds = true
     imageView.layer.cornerRadius = end.cornerRadius
     clipView.addSubview(imageView)
@@ -134,21 +133,12 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     ) {
       clipView.frame = end.frame
       clipView.layer.cornerRadius = end.cornerRadius
-      imageView.frame = end.imageFrame ?? centeredRect(size: end.imageSize, in: end.frame.size)
+      imageView.frame = end.imageFrame
       imageView.layer.cornerRadius = 0
       alongside()
     } completion: { _ in
       clipView.removeFromSuperview()
       completion()
     }
-  }
-
-  private static func centeredRect(size: CGSize, in containerSize: CGSize) -> CGRect {
-    CGRect(
-      x: (containerSize.width - size.width) / 2,
-      y: (containerSize.height - size.height) / 2,
-      width: size.width,
-      height: size.height
-    )
   }
 }

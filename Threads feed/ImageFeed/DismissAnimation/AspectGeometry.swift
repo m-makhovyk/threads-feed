@@ -36,4 +36,13 @@ enum AspectGeometry {
       height: size.height
     )
   }
+
+  static func centeredRect(size: CGSize, in containerSize: CGSize) -> CGRect {
+    CGRect(
+      x: (containerSize.width - size.width) / 2,
+      y: (containerSize.height - size.height) / 2,
+      width: size.width,
+      height: size.height
+    )
+  }
 }

@@ -75,13 +75,20 @@ enum ImagePreviewDismissAnimator {
       return inFeed.offsetBy(dx: -visualFrame.minX, dy: -visualFrame.minY)
     }
 
-    let start = ImageZoomTransition.Endpoint(
-      frame: visualFrame,
-      imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: visualFrame.size),
-      cornerRadius: cornerRadius,
-      imageFrame: startImageFrame
-    )
-    let end = ImageZoomTransition.Endpoint(
+    let start: ImageZoomTransition.Endpoint = if let startImageFrame {
+      ImageZoomTransition.Endpoint(
+        frame: visualFrame,
+        imageFrame: startImageFrame,
+        cornerRadius: cornerRadius
+      )
+    } else {
+      .centered(
+        frame: visualFrame,
+        imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: visualFrame.size),
+        cornerRadius: cornerRadius
+      )
+    }
+    let end = ImageZoomTransition.Endpoint.centered(
       frame: cellFrame,
       imageSize: AspectGeometry.aspectFillSize(contentSize: image.size, boundingSize: cellFrame.size),
       cornerRadius: sourceInfo.cornerRadius
