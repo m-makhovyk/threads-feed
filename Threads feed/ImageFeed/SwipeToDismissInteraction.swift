@@ -47,7 +47,7 @@ class SwipeToDismissInteraction: NSObject {
     case .began:
       guard let image = viewController.currentImage else { return }
       closeButton?.alpha = 0
-      sourceFrame = ImageZoomTransition.aspectFitFrame(for: image, in: viewController.view.bounds)
+      sourceFrame = AspectGeometry.aspectFitFrame(contentSize: image.size, boundingRect: viewController.view.bounds)
 
       let imageView = UIImageView(image: image)
       imageView.contentMode = .scaleAspectFit

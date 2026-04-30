@@ -69,12 +69,12 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
 
     let start = Endpoint(
       frame: cellFrame,
-      imageSize: Self.aspectFillSize(for: image, in: cellFrame.size),
+      imageSize: AspectGeometry.aspectFillSize(contentSize: image.size, boundingSize: cellFrame.size),
       cornerRadius: sourceInfo.cornerRadius
     )
     let end = Endpoint(
       frame: screenBounds,
-      imageSize: Self.aspectFitSize(for: image, in: screenBounds.size),
+      imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: screenBounds.size),
       cornerRadius: sourceInfo.cornerRadius
     )
 
@@ -139,40 +139,6 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
       clipView.removeFromSuperview()
       completion()
     }
-  }
-
-  // MARK: - Geometry
-
-  static func aspectFillSize(for image: UIImage, in size: CGSize) -> CGSize {
-    guard image.size.height > 0, size.height > 0 else { return size }
-    let imageRatio = image.size.width / image.size.height
-    let rectRatio = size.width / size.height
-    if imageRatio > rectRatio {
-      return CGSize(width: size.height * imageRatio, height: size.height)
-    } else {
-      return CGSize(width: size.width, height: size.width / imageRatio)
-    }
-  }
-
-  static func aspectFitSize(for image: UIImage, in size: CGSize) -> CGSize {
-    guard image.size.height > 0, size.height > 0 else { return size }
-    let imageRatio = image.size.width / image.size.height
-    let rectRatio = size.width / size.height
-    if imageRatio > rectRatio {
-      return CGSize(width: size.width, height: size.width / imageRatio)
-    } else {
-      return CGSize(width: size.height * imageRatio, height: size.height)
-    }
-  }
-
-  static func aspectFitFrame(for image: UIImage, in bounds: CGRect) -> CGRect {
-    let size = aspectFitSize(for: image, in: bounds.size)
-    return CGRect(
-      x: bounds.origin.x + (bounds.width - size.width) / 2,
-      y: bounds.origin.y + (bounds.height - size.height) / 2,
-      width: size.width,
-      height: size.height
-    )
   }
 
   private static func centeredRect(size: CGSize, in containerSize: CGSize) -> CGRect {
