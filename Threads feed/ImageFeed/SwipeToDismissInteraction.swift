@@ -52,11 +52,7 @@ class SwipeToDismissInteraction: NSObject {
       closeButton?.alpha = 0
       sourceFrame = AspectGeometry.aspectFitFrame(contentSize: image.size, boundingRect: viewController.view.bounds)
 
-      let imageView = UIImageView(image: image)
-      imageView.contentMode = .scaleAspectFit
-      imageView.clipsToBounds = true
-      imageView.layer.cornerCurve = .continuous
-      imageView.frame = sourceFrame
+      let imageView = makeImageMirror(image: image)
       viewController.view.addSubview(imageView)
       snapshotView = imageView
 
@@ -147,12 +143,8 @@ class SwipeToDismissInteraction: NSObject {
   ) {
     guard let image else { return }
 
-    let flyoffView = UIImageView(image: image)
-    flyoffView.contentMode = .scaleAspectFit
-    flyoffView.clipsToBounds = true
-    flyoffView.layer.cornerCurve = .continuous
+    let flyoffView = makeImageMirror(image: image)
     flyoffView.layer.cornerRadius = cornerRadius
-    flyoffView.frame = sourceFrame
     flyoffView.transform = CGAffineTransform(scaleX: scale, y: scale)
       .concatenating(CGAffineTransform(translationX: translation.x, y: translation.y))
     window.addSubview(flyoffView)
@@ -166,6 +158,15 @@ class SwipeToDismissInteraction: NSObject {
     }) { _ in
       flyoffView.removeFromSuperview()
     }
+  }
+
+  private func makeImageMirror(image: UIImage) -> UIImageView {
+    let imageView = UIImageView(image: image)
+    imageView.contentMode = .scaleAspectFit
+    imageView.clipsToBounds = true
+    imageView.layer.cornerCurve = .continuous
+    imageView.frame = sourceFrame
+    return imageView
   }
 
   private func cleanup() {
