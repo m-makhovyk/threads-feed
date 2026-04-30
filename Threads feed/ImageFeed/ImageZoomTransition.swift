@@ -61,7 +61,7 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     containerView.addSubview(toVC.view)
     toVC.view.layoutIfNeeded()
 
-    let screenBounds = toVC.view.bounds
+    let previewBounds = toVC.view.bounds
     toVC.backgroundView.alpha = 0
     toVC.collectionView.alpha = 0
     toVC.closeButton.alpha = 0
@@ -74,8 +74,8 @@ class ImageZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
       cornerRadius: sourceInfo.cornerRadius
     )
     let end = Endpoint.centered(
-      frame: screenBounds,
-      imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: screenBounds.size),
+      frame: previewBounds,
+      imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: previewBounds.size),
       cornerRadius: sourceInfo.cornerRadius
     )
 
