@@ -91,7 +91,7 @@ class SwipeToDismissInteraction: NSObject {
             width: sourceFrame.width * currentScale,
             height: sourceFrame.height * currentScale
           )
-          ImagePreviewDismissAnimator.finishInteractiveDismiss(
+          viewController.zoomTransition.finishInteractiveDismiss(
             image: image,
             sourceInfo: sourceInfo,
             visualFrameInPreview: visualFrameInPreview,
