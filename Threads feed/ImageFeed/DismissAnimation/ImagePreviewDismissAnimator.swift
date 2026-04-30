@@ -4,51 +4,25 @@ import UIKit
 enum ImagePreviewDismissAnimator {
 
   static func dismissFromCurrentPreviewImage(from viewController: ImagePreviewViewController) {
-    let completion = viewController.onClearBlackout
+    let clearBlackout = viewController.onClearBlackout
 
     guard let image = viewController.currentImage,
           let sourceInfo = viewController.zoomTransition.sourceProvider?(viewController.currentPage),
           let feedCollectionView = sourceInfo.view.findOutermostCollectionView() else {
-      completion?()
+      clearBlackout?()
       viewController.dismiss(animated: false)
       return
     }
 
-    // The clip animation runs on the feed collection view, hidden behind the preview;
-    // the preview is dismissed instantly at the end so the user only sees the animation.
-    let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCollectionView)
-    let visualFrame = feedCollectionView.convert(viewController.view.bounds, from: viewController.view)
-    // If a preview cell is available, capture the actual on-screen image rect (which may be zoomed/panned)
-    // expressed relative to `visualFrame`. `nil` means "no custom placement, fall back to aspect-fit".
-    let startImageFrame = viewController.currentCell.map { cell in
-      let imageFrameInPreview = cell.imageFrame(in: viewController.view)
-      let imageFrame = feedCollectionView.convert(imageFrameInPreview, from: viewController.view)
-      return imageFrame.offsetBy(dx: -visualFrame.minX, dy: -visualFrame.minY)
-    }
-
-    // Starting endpoint: full-screen, aspect-fit, no rounding. `imageFrame` carries the user's
-    // current zoom/pan so the animation begins exactly where the image is drawn on screen.
-    let start = ImageZoomTransition.Endpoint(
-      frame: visualFrame,
-      imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: visualFrame.size),
-      cornerRadius: 0,
-      imageFrame: startImageFrame
-    )
-    // Ending endpoint: the thumbnail cell, aspect-fill, with the cell's corner radius.
-    let end = ImageZoomTransition.Endpoint(
-      frame: cellFrame,
-      imageSize: AspectGeometry.aspectFillSize(contentSize: image.size, boundingSize: cellFrame.size),
-      cornerRadius: sourceInfo.cornerRadius
-    )
-
-    ImageZoomTransition.animateClipTransition(
+    runDismissClipAnimation(
       image: image,
-      from: start,
-      to: end,
-      in: feedCollectionView,
-      completion: {
-        completion?()
-      }
+      sourceInfo: sourceInfo,
+      feedCollectionView: feedCollectionView,
+      startVisualFrameInPreview: viewController.view.bounds,
+      startCornerRadius: 0,
+      startImageFrameInPreview: viewController.currentCell?.imageFrame(in: viewController.view),
+      in: viewController,
+      completion: { clearBlackout?() }
     )
 
     viewController.dismiss(animated: false)
@@ -68,13 +42,44 @@ enum ImagePreviewDismissAnimator {
 
     let clearBlackout = viewController.onClearBlackout
 
+    runDismissClipAnimation(
+      image: image,
+      sourceInfo: sourceInfo,
+      feedCollectionView: feedCollectionView,
+      startVisualFrameInPreview: visualFrameInPreview,
+      startCornerRadius: cornerRadius,
+      in: viewController,
+      completion: { clearBlackout?() }
+    )
+  }
+
+  private static func runDismissClipAnimation(
+    image: UIImage,
+    sourceInfo: ImageZoomTransition.SourceInfo,
+    feedCollectionView: UICollectionView,
+    startVisualFrameInPreview: CGRect,
+    startCornerRadius: CGFloat,
+    startImageFrameInPreview: CGRect? = nil,
+    in viewController: ImagePreviewViewController,
+    completion: @escaping () -> Void
+  ) {
+    // The clip animation runs on the feed collection view, hidden behind the preview;
+    // the preview is dismissed instantly at the end so the user only sees the animation.
     let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCollectionView)
-    let visualFrame = feedCollectionView.convert(visualFrameInPreview, from: viewController.view)
+    let visualFrame = feedCollectionView.convert(startVisualFrameInPreview, from: viewController.view)
+
+    // If the caller provided a custom on-screen image rect (e.g. zoomed/panned), re-express it
+    // relative to `visualFrame` so the animation starts exactly where the image is drawn.
+    let startImageFrame = startImageFrameInPreview.map { rect in
+      let inFeed = feedCollectionView.convert(rect, from: viewController.view)
+      return inFeed.offsetBy(dx: -visualFrame.minX, dy: -visualFrame.minY)
+    }
 
     let start = ImageZoomTransition.Endpoint(
       frame: visualFrame,
       imageSize: AspectGeometry.aspectFitSize(contentSize: image.size, boundingSize: visualFrame.size),
-      cornerRadius: cornerRadius
+      cornerRadius: startCornerRadius,
+      imageFrame: startImageFrame
     )
     let end = ImageZoomTransition.Endpoint(
       frame: cellFrame,
@@ -87,9 +92,7 @@ enum ImagePreviewDismissAnimator {
       from: start,
       to: end,
       in: feedCollectionView,
-      completion: {
-        clearBlackout?()
-      }
+      completion: completion
     )
   }
 }
