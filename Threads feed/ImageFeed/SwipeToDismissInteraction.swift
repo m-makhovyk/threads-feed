@@ -84,16 +84,10 @@ class SwipeToDismissInteraction: NSObject {
         let currentCornerRadius = snapshotView.layer.cornerRadius
 
         if let image, let sourceInfo {
-          let visualFrameInPreview = CGRect(
-            x: sourceFrame.midX + translation.x - sourceFrame.width * currentScale / 2,
-            y: sourceFrame.midY + translation.y - sourceFrame.height * currentScale / 2,
-            width: sourceFrame.width * currentScale,
-            height: sourceFrame.height * currentScale
-          )
           viewController.zoomTransition.finishInteractiveDismiss(
             image: image,
             sourceInfo: sourceInfo,
-            visualFrameInPreview: visualFrameInPreview,
+            visualFrameInPreview: snapshotView.frame,
             cornerRadius: currentCornerRadius,
             viewController: viewController
           )
