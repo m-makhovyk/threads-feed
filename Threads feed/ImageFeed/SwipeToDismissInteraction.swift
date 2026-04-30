@@ -84,7 +84,6 @@ class SwipeToDismissInteraction: NSObject {
         let currentScale = 1.0 - progress * maxScaleReduction
         let currentCornerRadius = snapshotView.layer.cornerRadius
 
-        // Start clip animation on feed collection view FIRST (still behind preview)
         if let image, let sourceInfo {
           let visualFrameInPreview = CGRect(
             x: sourceFrame.midX + translation.x - sourceFrame.width * currentScale / 2,
@@ -101,27 +100,21 @@ class SwipeToDismissInteraction: NSObject {
           )
         } else {
           viewController.onClearBlackout?()
+          let window = viewController.view.window
+          backgroundView.isHidden = true
+          viewController.dismiss(animated: false)
+          if let image, let window {
+            animateFlyoff(
+              image: image,
+              translation: translation,
+              velocity: velocity,
+              scale: currentScale,
+              cornerRadius: currentCornerRadius,
+              in: window
+            )
+          }
         }
-
-        // Capture window before dismiss for flyoff fallback
-        let window = viewController.view.window
-
-        // Hide background and dismiss in one frame
-        backgroundView.isHidden = true
         self.snapshotView = nil
-        viewController.dismiss(animated: false)
-
-        // Flyoff fallback if no source available
-        if sourceInfo == nil, let image, let window {
-          animateFlyoff(
-            image: image,
-            translation: translation,
-            velocity: velocity,
-            scale: currentScale,
-            cornerRadius: currentCornerRadius,
-            in: window
-          )
-        }
       } else {
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0) {
           snapshotView.transform = .identity

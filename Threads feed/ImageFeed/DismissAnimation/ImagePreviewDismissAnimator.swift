@@ -35,12 +35,13 @@ enum ImagePreviewDismissAnimator {
     cornerRadius: CGFloat,
     viewController: ImagePreviewViewController
   ) {
+    let clearBlackout = viewController.onClearBlackout
+
     guard let feedCollectionView = sourceInfo.view.findOutermostCollectionView() else {
-      viewController.onClearBlackout?()
+      clearBlackout?()
+      viewController.dismiss(animated: false)
       return
     }
-
-    let clearBlackout = viewController.onClearBlackout
 
     runDismissClipAnimation(
       image: image,
@@ -51,6 +52,8 @@ enum ImagePreviewDismissAnimator {
       in: viewController,
       completion: { clearBlackout?() }
     )
+
+    viewController.dismiss(animated: false)
   }
 
   private static func runDismissClipAnimation(
