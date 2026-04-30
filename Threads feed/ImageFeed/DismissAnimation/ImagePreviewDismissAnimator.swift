@@ -1,9 +1,9 @@
 import Foundation
 import UIKit
 
-final class ImagePreviewDismissAnimator {
+enum ImagePreviewDismissAnimator {
 
-  func dismissFromCurrentPreviewImage(from viewController: ImagePreviewViewController) {
+  static func dismissFromCurrentPreviewImage(from viewController: ImagePreviewViewController) {
     let completion = viewController.onClearBlackout
 
     guard let image = viewController.currentImage,
@@ -54,12 +54,10 @@ final class ImagePreviewDismissAnimator {
     viewController.dismiss(animated: false)
   }
 
-  func finishInteractiveDismiss(
+  static func finishInteractiveDismiss(
     image: UIImage,
     sourceInfo: ImageZoomTransition.SourceInfo,
-    initialSnapshotFrame: CGRect,
-    translation: CGPoint,
-    scale: CGFloat,
+    visualFrameInPreview: CGRect,
     cornerRadius: CGFloat,
     viewController: ImagePreviewViewController
   ) {
@@ -71,12 +69,6 @@ final class ImagePreviewDismissAnimator {
     let clearBlackout = viewController.onClearBlackout
 
     let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCollectionView)
-    let visualFrameInPreview = CGRect(
-      x: initialSnapshotFrame.midX + translation.x - initialSnapshotFrame.width * scale / 2,
-      y: initialSnapshotFrame.midY + translation.y - initialSnapshotFrame.height * scale / 2,
-      width: initialSnapshotFrame.width * scale,
-      height: initialSnapshotFrame.height * scale
-    )
     let visualFrame = feedCollectionView.convert(visualFrameInPreview, from: viewController.view)
 
     let start = ImageZoomTransition.Endpoint(

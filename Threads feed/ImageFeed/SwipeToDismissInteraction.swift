@@ -86,12 +86,18 @@ class SwipeToDismissInteraction: NSObject {
 
         // Start clip animation on feed collection view FIRST (still behind preview)
         if let image, let sourceInfo {
-          animateDismissToSource(
+          let visualFrameInPreview = CGRect(
+            x: sourceFrame.midX + translation.x - sourceFrame.width * currentScale / 2,
+            y: sourceFrame.midY + translation.y - sourceFrame.height * currentScale / 2,
+            width: sourceFrame.width * currentScale,
+            height: sourceFrame.height * currentScale
+          )
+          ImagePreviewDismissAnimator.finishInteractiveDismiss(
             image: image,
             sourceInfo: sourceInfo,
-            translation: translation,
-            scale: currentScale,
-            cornerRadius: currentCornerRadius
+            visualFrameInPreview: visualFrameInPreview,
+            cornerRadius: currentCornerRadius,
+            viewController: viewController
           )
         } else {
           viewController.onClearBlackout?()
@@ -133,52 +139,6 @@ class SwipeToDismissInteraction: NSObject {
     default:
       break
     }
-  }
-
-  private func animateDismissToSource(
-    image: UIImage,
-    sourceInfo: ImageZoomTransition.SourceInfo,
-    translation: CGPoint,
-    scale: CGFloat,
-    cornerRadius: CGFloat
-  ) {
-    guard let viewController,
-          let feedCV = sourceInfo.view.findOutermostCollectionView() else {
-      self.viewController?.onClearBlackout?()
-      return
-    }
-
-    let clearBlackout = viewController.onClearBlackout
-
-    let cellFrame = sourceInfo.view.convert(sourceInfo.view.bounds, to: feedCV)
-    let visualFrameInPreview = CGRect(
-      x: sourceFrame.midX + translation.x - sourceFrame.width * scale / 2,
-      y: sourceFrame.midY + translation.y - sourceFrame.height * scale / 2,
-      width: sourceFrame.width * scale,
-      height: sourceFrame.height * scale
-    )
-    let visualFrame = feedCV.convert(visualFrameInPreview, from: viewController.view)
-
-    let start = ImageZoomTransition.Endpoint(
-      frame: visualFrame,
-      imageSize: ImageZoomTransition.aspectFitSize(for: image, in: visualFrame.size),
-      cornerRadius: cornerRadius
-    )
-    let end = ImageZoomTransition.Endpoint(
-      frame: cellFrame,
-      imageSize: ImageZoomTransition.aspectFillSize(for: image, in: cellFrame.size),
-      cornerRadius: sourceInfo.cornerRadius
-    )
-
-    ImageZoomTransition.animateClipTransition(
-      image: image,
-      from: start,
-      to: end,
-      in: feedCV,
-      completion: {
-        clearBlackout?()
-      }
-    )
   }
 
   private func animateFlyoff(

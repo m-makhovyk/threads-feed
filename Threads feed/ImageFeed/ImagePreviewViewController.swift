@@ -9,7 +9,6 @@ class ImagePreviewViewController: UIViewController {
   private var lastCollectionViewSize: CGSize = .zero
   private var currentPageIndex: Int
   private var swipeToDismiss: SwipeToDismissInteraction?
-  private lazy var dismissAnimator = ImagePreviewDismissAnimator()
   let zoomTransition = ImageZoomTransition()
 
   var onPageChange: ((Int) -> Void)?
@@ -131,7 +130,7 @@ class ImagePreviewViewController: UIViewController {
   @objc private func closeTapped() {
     closeButton.isEnabled = false
     swipeToDismiss?.disable()
-    dismissAnimator.dismissFromCurrentPreviewImage(from: self)
+    ImagePreviewDismissAnimator.dismissFromCurrentPreviewImage(from: self)
   }
 
 }
