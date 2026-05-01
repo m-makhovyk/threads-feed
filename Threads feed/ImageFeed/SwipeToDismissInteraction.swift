@@ -90,6 +90,7 @@ class SwipeToDismissInteraction: NSObject {
         }
         self.snapshotView = nil
       } else {
+        panGesture.isEnabled = false
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0) {
           snapshotView.transform = .identity
           snapshotView.layer.cornerRadius = 0
@@ -97,6 +98,7 @@ class SwipeToDismissInteraction: NSObject {
         } completion: { _ in
           viewController.collectionView.isHidden = false
           self.cleanup()
+          self.panGesture.isEnabled = true
         }
         UIView.animate(withDuration: 0.2, delay: 0.15) {
           self.closeButton?.alpha = 1
