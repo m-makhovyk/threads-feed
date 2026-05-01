@@ -5,13 +5,14 @@ class SwipeToDismissInteraction: NSObject {
   private enum AnimationConstants {
     static let springBackDuration: TimeInterval = 0.3
     static let springBackDamping: CGFloat = 0.8
-    static let closeButtonFadeDuration: TimeInterval = 0.2
-    static let closeButtonFadeDelay: TimeInterval = 0.15
+    static let controlsFadeDuration: TimeInterval = 0.2
+    static let controlsFadeDelay: TimeInterval = 0.15
   }
+
+  var onControlsVisible: ((Bool) -> Void)?
 
   private weak var viewController: ImagePreviewViewController?
   private weak var backgroundView: UIView?
-  private weak var closeButton: UIView?
 
   // Diagonal drag distance past which the gesture commits to dismissing on release.
   private let dismissThreshold: CGFloat = 100
@@ -28,12 +29,10 @@ class SwipeToDismissInteraction: NSObject {
 
   init(
     viewController: ImagePreviewViewController,
-    backgroundView: UIView,
-    closeButton: UIView
+    backgroundView: UIView
   ) {
     self.viewController = viewController
     self.backgroundView = backgroundView
-    self.closeButton = closeButton
     super.init()
 
     let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
@@ -56,7 +55,7 @@ class SwipeToDismissInteraction: NSObject {
     switch gesture.state {
     case .began:
       guard let image = viewController.currentImage else { return }
-      closeButton?.alpha = 0
+      onControlsVisible?(false)
       sourceFrame = AspectGeometry.aspectFitFrame(contentSize: image.size, boundingRect: viewController.view.bounds)
 
       let imageView = makeImageMirror(image: image)
@@ -113,10 +112,10 @@ class SwipeToDismissInteraction: NSObject {
           self.panGesture.isEnabled = true
         }
         UIView.animate(
-          withDuration: AnimationConstants.closeButtonFadeDuration,
-          delay: AnimationConstants.closeButtonFadeDelay
+          withDuration: AnimationConstants.controlsFadeDuration,
+          delay: AnimationConstants.controlsFadeDelay
         ) {
-          self.closeButton?.alpha = 1
+          self.onControlsVisible?(true)
         }
       }
 

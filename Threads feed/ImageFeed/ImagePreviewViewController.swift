@@ -100,9 +100,11 @@ class ImagePreviewViewController: UIViewController {
 
     swipeToDismiss = SwipeToDismissInteraction(
       viewController: self,
-      backgroundView: backgroundView,
-      closeButton: closeButton
+      backgroundView: backgroundView
     )
+    swipeToDismiss?.onControlsVisible = { [weak self] visible in
+      self?.closeButton.alpha = visible ? 1 : 0
+    }
   }
 
   override func viewDidLayoutSubviews() {
