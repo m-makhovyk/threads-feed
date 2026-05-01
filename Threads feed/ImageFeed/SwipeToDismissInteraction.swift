@@ -2,6 +2,13 @@ import UIKit
 
 class SwipeToDismissInteraction: NSObject {
 
+  private enum AnimationConstants {
+    static let springBackDuration: TimeInterval = 0.3
+    static let springBackDamping: CGFloat = 0.8
+    static let closeButtonFadeDuration: TimeInterval = 0.2
+    static let closeButtonFadeDelay: TimeInterval = 0.15
+  }
+
   private weak var viewController: ImagePreviewViewController?
   private weak var backgroundView: UIView?
   private weak var closeButton: UIView?
@@ -91,7 +98,12 @@ class SwipeToDismissInteraction: NSObject {
         self.snapshotView = nil
       } else {
         panGesture.isEnabled = false
-        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0) {
+        UIView.animate(
+          withDuration: AnimationConstants.springBackDuration,
+          delay: 0,
+          usingSpringWithDamping: AnimationConstants.springBackDamping,
+          initialSpringVelocity: 0
+        ) {
           snapshotView.transform = .identity
           snapshotView.layer.cornerRadius = 0
           backgroundView.alpha = 1
@@ -100,7 +112,10 @@ class SwipeToDismissInteraction: NSObject {
           self.cleanup()
           self.panGesture.isEnabled = true
         }
-        UIView.animate(withDuration: 0.2, delay: 0.15) {
+        UIView.animate(
+          withDuration: AnimationConstants.closeButtonFadeDuration,
+          delay: AnimationConstants.closeButtonFadeDelay
+        ) {
           self.closeButton?.alpha = 1
         }
       }
