@@ -146,6 +146,8 @@ extension SwipeToDismissInteraction: UIGestureRecognizerDelegate {
       return true
     }
 
+    // Asymmetric on purpose: only a rightward swipe from the first page counts as a "back" gesture.
+    // Leftward swipes on the last page fall through to the collection to match Threads behaviour.
     let isFirstPage = viewController.currentPage == 0
 
     if velocity.x > 0 {
