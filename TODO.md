@@ -18,6 +18,5 @@
 - [ ] Full-screen preview supporting both media types
 
 ## Other
-- [ ] Custom pinch-to-zoom without scrollView
 - [ ] Stitch images by gestures
 - [ ] Tall images lagging in feed (600×1500)
