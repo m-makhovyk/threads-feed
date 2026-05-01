@@ -21,7 +21,7 @@ class ZoomableImageCell: UICollectionViewCell {
     scrollView.delegate = self
     scrollView.minimumZoomScale = 1.0
     scrollView.maximumZoomScale = 4.0
-    scrollView.bounces = false
+    scrollView.bounces = true
     scrollView.showsHorizontalScrollIndicator = false
     scrollView.showsVerticalScrollIndicator = false
     scrollView.frame = contentView.bounds
