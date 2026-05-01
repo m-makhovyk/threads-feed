@@ -4,6 +4,7 @@ import Nuke
 class ZoomableImageCell: UICollectionViewCell {
 
   static let reuseIdentifier = "ZoomableImageCell"
+  static let doubleTapGestureName = "ZoomableImageCell.doubleTap"
 
   var isZoomed: Bool {
     scrollView.zoomScale > scrollView.minimumZoomScale + 0.01
@@ -38,6 +39,7 @@ class ZoomableImageCell: UICollectionViewCell {
 
     let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
     doubleTap.numberOfTapsRequired = 2
+    doubleTap.name = Self.doubleTapGestureName
     scrollView.addGestureRecognizer(doubleTap)
   }
 
