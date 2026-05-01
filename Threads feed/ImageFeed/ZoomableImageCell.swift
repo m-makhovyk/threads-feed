@@ -84,7 +84,7 @@ class ZoomableImageCell: UICollectionViewCell {
     imageView.convert(imageView.bounds, to: view)
   }
 
-  private func resetZoom() {
+  func resetZoom() {
     scrollView.setZoomScale(scrollView.minimumZoomScale, animated: false)
     updateImageLayout()
   }

@@ -186,6 +186,10 @@ extension ImagePreviewViewController: UICollectionViewDelegateFlowLayout {
     let resolvedPage = page ?? pageForCurrentContentOffset()
     guard resolvedPage != currentPageIndex else { return }
 
+    let previousIndexPath = IndexPath(item: currentPageIndex, section: 0)
+    let previousCell = collectionView.cellForItem(at: previousIndexPath) as? ZoomableImageCell
+    previousCell?.resetZoom()
+
     currentPageIndex = resolvedPage
     onPageChange?(resolvedPage)
     onBlackoutIndex?(resolvedPage)
