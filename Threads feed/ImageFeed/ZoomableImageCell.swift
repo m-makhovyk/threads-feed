@@ -130,14 +130,18 @@ class ZoomableImageCell: UICollectionViewCell {
     guard imageView.image != nil else { return }
 
     if isZoomed {
-      scrollView.setZoomScale(scrollView.minimumZoomScale, animated: true)
+      UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseOut, .beginFromCurrentState]) {
+        self.scrollView.setZoomScale(self.scrollView.minimumZoomScale, animated: false)
+      }
       return
     }
 
     let targetZoomScale = min(scrollView.maximumZoomScale, 3)
     let tapPoint = gesture.location(in: imageContainerView)
     let zoomRect = zoomRect(for: targetZoomScale, centeredAt: tapPoint)
-    scrollView.zoom(to: zoomRect, animated: true)
+    UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseOut, .beginFromCurrentState]) {
+      self.scrollView.zoom(to: zoomRect, animated: false)
+    }
   }
 
   private func zoomRect(for scale: CGFloat, centeredAt point: CGPoint) -> CGRect {
