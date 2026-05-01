@@ -75,37 +75,18 @@ class SwipeToDismissInteraction: NSObject {
       if shouldDismiss {
         panGesture.isEnabled = false
 
-        // Capture state before dismissing
-        let image = viewController.currentImage
-        let sourceInfo = image != nil
-          ? viewController.zoomTransition.sourceProvider?(viewController.currentPage)
-          : nil
-        let currentScale = 1.0 - progress * maxScaleReduction
-        let currentCornerRadius = snapshotView.layer.cornerRadius
-
-        if let image, let sourceInfo {
+        if let image = viewController.currentImage,
+           let sourceInfo = viewController.zoomTransition.sourceProvider?(viewController.currentPage) {
           viewController.zoomTransition.finishInteractiveDismiss(
             image: image,
             sourceInfo: sourceInfo,
             visualFrameInPreview: snapshotView.frame,
-            cornerRadius: currentCornerRadius,
+            cornerRadius: snapshotView.layer.cornerRadius,
             viewController: viewController
           )
         } else {
           viewController.onClearBlackout?()
-          let window = viewController.view.window
-          backgroundView.isHidden = true
           viewController.dismiss(animated: false)
-          if let image, let window {
-            animateFlyoff(
-              image: image,
-              translation: translation,
-              velocity: velocity,
-              scale: currentScale,
-              cornerRadius: currentCornerRadius,
-              in: window
-            )
-          }
         }
         self.snapshotView = nil
       } else {
@@ -124,33 +105,6 @@ class SwipeToDismissInteraction: NSObject {
 
     default:
       break
-    }
-  }
-
-  private func animateFlyoff(
-    image: UIImage?,
-    translation: CGPoint,
-    velocity: CGPoint,
-    scale: CGFloat,
-    cornerRadius: CGFloat,
-    in window: UIWindow
-  ) {
-    guard let image else { return }
-
-    let flyoffView = makeImageMirror(image: image)
-    flyoffView.layer.cornerRadius = cornerRadius
-    flyoffView.transform = CGAffineTransform(scaleX: scale, y: scale)
-      .concatenating(CGAffineTransform(translationX: translation.x, y: translation.y))
-    window.addSubview(flyoffView)
-
-    let targetX = translation.x + velocity.x * 0.15
-    let targetY = translation.y + velocity.y * 0.15
-
-    UIView.animate(withDuration: 0.25, animations: {
-      flyoffView.transform = CGAffineTransform(translationX: targetX, y: targetY)
-      flyoffView.alpha = 0
-    }) { _ in
-      flyoffView.removeFromSuperview()
     }
   }
 
