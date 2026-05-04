@@ -2,9 +2,9 @@ import Foundation
 
 enum MockData {
 
-  static let posts: [Post] = [
+  static let imagePosts: [ImagePost] = [
     // Five images, mixed aspect — horizontal scroll stress test.
-    Post(
+    ImagePost(
       author: Author(
         username: "maya.kapoor",
         avatarURL: URL(string: "https://picsum.photos/seed/avatar9/100/100")
@@ -21,7 +21,7 @@ enum MockData {
     ),
 
     // Two images with different aspect ratios — group with real variety.
-    Post(
+    ImagePost(
       author: Author(
         username: "finn_walker",
         avatarURL: URL(string: "https://picsum.photos/seed/avatar8/100/100")
@@ -35,7 +35,7 @@ enum MockData {
     ),
 
     // No text + single portrait image — silent post case.
-    Post(
+    ImagePost(
       author: Author(
         username: "leo_patterson",
         avatarURL: URL(string: "https://picsum.photos/seed/avatar3/100/100")
@@ -48,7 +48,7 @@ enum MockData {
     ),
 
     // No text + multiple images of mixed aspect — silent post with media group.
-    Post(
+    ImagePost(
       author: Author(
         username: "jordan.bishop",
         avatarURL: URL(string: "https://picsum.photos/seed/avatar4/100/100")
@@ -63,7 +63,7 @@ enum MockData {
     ),
 
     // Single square image (1:1) — common Instagram-style aspect.
-    Post(
+    ImagePost(
       author: Author(
         username: "nikolas98",
         avatarURL: URL(string: "https://picsum.photos/seed/avatar5/100/100")
@@ -76,7 +76,7 @@ enum MockData {
     ),
 
     // Single very wide panorama — exercises attachmentMinHeight clamp.
-    Post(
+    ImagePost(
       author: Author(
         username: "rae_s",
         avatarURL: URL(string: "https://picsum.photos/seed/avatar6/100/100")
@@ -89,7 +89,7 @@ enum MockData {
     ),
 
     // Text-only, short single line — also covers "now" date branch.
-    Post(
+    ImagePost(
       author: Author(
         username: "quinn.avery",
         avatarURL: URL(string: "https://picsum.photos/seed/avatar1/100/100")
@@ -101,7 +101,7 @@ enum MockData {
 
     // Text-only, long multi-paragraph — tests wrapping, paragraph spacing,
     // and tall cells with no attachments below.
-    Post(
+    ImagePost(
       author: Author(
         username: "marco_vitti",
         avatarURL: URL(string: "https://picsum.photos/seed/avatar2/100/100")
@@ -119,7 +119,7 @@ enum MockData {
 
     // Long username + Cyrillic + emoji + hashtag — header truncation and
     // mixed glyph rendering.
-    Post(
+    ImagePost(
       author: Author(
         username: "very_long_username_for_truncation_testing_in_header",
         avatarURL: URL(string: "https://picsum.photos/seed/avatar10/100/100")

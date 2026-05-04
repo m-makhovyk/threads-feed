@@ -4,7 +4,7 @@ import SnapKit
 class ImageFeedViewController: UIViewController {
 
   private var collectionView: UICollectionView!
-  private let posts = MockData.posts
+  private let posts = MockData.imagePosts
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -32,8 +32,8 @@ class ImageFeedViewController: UIViewController {
     collectionView.dataSource = self
     collectionView.showsVerticalScrollIndicator = false
     collectionView.register(
-      PostCell.self,
-      forCellWithReuseIdentifier: PostCell.reuseIdentifier
+      ImagePostCell.self,
+      forCellWithReuseIdentifier: ImagePostCell.reuseIdentifier
     )
     view.addSubview(collectionView)
 
@@ -57,9 +57,9 @@ extension ImageFeedViewController: UICollectionViewDataSource {
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(
-      withReuseIdentifier: PostCell.reuseIdentifier,
+      withReuseIdentifier: ImagePostCell.reuseIdentifier,
       for: indexPath
-    ) as! PostCell
+    ) as! ImagePostCell
     cell.configure(with: posts[indexPath.item])
     cell.onImageTapped = { [weak self] urls, index in
       guard let self else { return }
@@ -92,7 +92,7 @@ extension ImageFeedViewController {
     at indexPath: IndexPath,
     previewImage: UIImage?
   ) -> ImageZoomTransition.SourceInfo? {
-    guard let cell = collectionView.cellForItem(at: indexPath) as? PostCell else { return nil }
+    guard let cell = collectionView.cellForItem(at: indexPath) as? ImagePostCell else { return nil }
     guard let sourceView = cell.imageView(forAttachmentAt: pageIndex) else { return nil }
     guard let image = previewImage ?? cell.image(forAttachmentAt: pageIndex) else { return nil }
     return ImageZoomTransition.SourceInfo(

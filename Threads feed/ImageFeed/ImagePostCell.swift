@@ -2,9 +2,9 @@ import UIKit
 import SnapKit
 import NukeUI
 
-class PostCell: UICollectionViewCell {
+class ImagePostCell: UICollectionViewCell {
 
-  static let reuseIdentifier = "PostCell"
+  static let reuseIdentifier = "ImagePostCell"
 
   var onImageTapped: ((_ urls: [URL], _ index: Int) -> Void)? {
     get { attachmentsView.onImageTapped }
@@ -99,7 +99,7 @@ class PostCell: UICollectionViewCell {
     attachmentsTopToAvatarConstraint?.deactivate()
   }
 
-  func configure(with post: Post) {
+  func configure(with post: ImagePost) {
     avatarImageView.url = post.author.avatarURL
     usernameLabel.text = post.author.username
     dateLabel.text = post.createdAt.relativeFormatted()
