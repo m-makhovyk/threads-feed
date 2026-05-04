@@ -81,18 +81,35 @@ class SwipeToDismissInteraction: NSObject {
       if shouldDismiss {
         panGesture.isEnabled = false
 
-        if let image = viewController.currentImage,
-           let sourceInfo = viewController.zoomTransition.sourceProvider?(viewController.currentPage) {
+        let image = viewController.currentImage
+        let sourceInfo = image != nil
+          ? viewController.zoomTransition.sourceProvider?(viewController.currentPage)
+          : nil
+        let currentScale = 1.0 - progress * maxScaleReduction
+        let currentCornerRadius = snapshotView.layer.cornerRadius
+
+        if let image, let sourceInfo {
           viewController.zoomTransition.finishInteractiveDismiss(
             image: image,
             sourceInfo: sourceInfo,
             visualFrameInPreview: snapshotView.frame,
-            cornerRadius: snapshotView.layer.cornerRadius,
+            cornerRadius: currentCornerRadius,
             viewController: viewController
           )
         } else {
           viewController.onClearBlackout?()
+          let window = viewController.view.window
+          backgroundView.isHidden = true
           viewController.dismiss(animated: false)
+          if let image, let window {
+            animateFlyoff(
+              image: image,
+              translation: translation,
+              scale: currentScale,
+              cornerRadius: currentCornerRadius,
+              in: window
+            )
+          }
         }
         self.snapshotView = nil
       } else {
@@ -121,6 +138,27 @@ class SwipeToDismissInteraction: NSObject {
 
     default:
       break
+    }
+  }
+
+  private func animateFlyoff(
+    image: UIImage,
+    translation: CGPoint,
+    scale: CGFloat,
+    cornerRadius: CGFloat,
+    in window: UIWindow
+  ) {
+    let flyoffView = makeImageMirror(image: image)
+    flyoffView.layer.cornerRadius = cornerRadius
+    flyoffView.transform = CGAffineTransform(scaleX: scale, y: scale)
+      .concatenating(CGAffineTransform(translationX: translation.x, y: translation.y))
+    window.addSubview(flyoffView)
+
+    UIView.animate(withDuration: 0.25, animations: {
+      flyoffView.transform = CGAffineTransform(scaleX: 0.01, y: 0.01)
+      flyoffView.alpha = 0
+    }) { _ in
+      flyoffView.removeFromSuperview()
     }
   }
 
