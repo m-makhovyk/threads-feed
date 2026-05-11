@@ -52,16 +52,7 @@ class ImagePreviewViewController: UIViewController {
     return cv
   }()
 
-  let closeButton: UIButton = {
-    let button = UIButton(type: .system)
-    let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
-    let image = UIImage(systemName: "xmark", withConfiguration: config)
-    button.setImage(image, for: .normal)
-    button.tintColor = .white
-    button.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-    button.layer.cornerRadius = 20
-    return button
-  }()
+  let closeButton = BlurredButton(systemName: "xmark")
 
   init(imageURLs: [URL], initialIndex: Int) {
     self.imageURLs = imageURLs
@@ -94,7 +85,6 @@ class ImagePreviewViewController: UIViewController {
     closeButton.snp.makeConstraints { make in
       make.leading.equalToSuperview().offset(16)
       make.top.equalTo(view.safeAreaLayoutGuide).offset(8)
-      make.size.equalTo(40)
     }
 
     closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
