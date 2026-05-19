@@ -4,6 +4,8 @@ import AVFoundation
 
 class VideoAttachmentsView: UIView {
 
+  var onVideoTapped: ((_ urls: [URL], _ index: Int) -> Void)?
+
   private var collectionView: UICollectionView!
   private var attachments: [VideoAttachment] = []
   private var isActive = false
@@ -144,6 +146,14 @@ extension VideoAttachmentsView: UICollectionViewDelegateFlowLayout {
       return CGSize(width: availableWidth, height: height)
     }
     return CGSize(width: LayoutConstants.attachmentImageWidth, height: height)
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didSelectItemAt indexPath: IndexPath
+  ) {
+    let urls = attachments.map(\.url)
+    onVideoTapped?(urls, indexPath.item)
   }
 
   func scrollViewDidScroll(_ scrollView: UIScrollView) {

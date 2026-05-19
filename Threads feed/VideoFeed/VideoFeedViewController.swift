@@ -97,6 +97,10 @@ extension VideoFeedViewController: UICollectionViewDataSource {
       for: indexPath
     ) as! VideoPostCell
     cell.configure(with: posts[indexPath.item])
+    cell.onVideoTapped = { [weak self] urls, index in
+      let preview = VideoPreviewViewController(videoURLs: urls, initialIndex: index)
+      self?.present(preview, animated: true)
+    }
     return cell
   }
 }

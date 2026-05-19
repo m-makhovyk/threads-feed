@@ -6,6 +6,11 @@ class VideoPostCell: UICollectionViewCell {
 
   static let reuseIdentifier = "VideoPostCell"
 
+  var onVideoTapped: ((_ urls: [URL], _ index: Int) -> Void)? {
+    get { attachmentsView.onVideoTapped }
+    set { attachmentsView.onVideoTapped = newValue }
+  }
+
   private let avatarImageView = LazyImageView()
   private let headerStack = UIStackView()
   private let usernameLabel = UILabel()
@@ -39,6 +44,7 @@ class VideoPostCell: UICollectionViewCell {
 
     attachmentsView.isHidden = true
     attachmentsView.reset()
+    attachmentsView.onVideoTapped = nil
   }
 
   func setActive(_ active: Bool) {
