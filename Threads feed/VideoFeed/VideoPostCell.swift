@@ -51,6 +51,10 @@ class VideoPostCell: UICollectionViewCell {
     attachmentsView.setActive(active)
   }
 
+  func scrollToAttachment(at index: Int, animated: Bool) {
+    attachmentsView.scrollToVideo(at: index, animated: animated)
+  }
+
   private func setupViews() {
     avatarImageView.contentMode = .scaleAspectFill
     avatarImageView.clipsToBounds = true

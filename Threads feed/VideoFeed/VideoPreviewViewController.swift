@@ -4,6 +4,8 @@ import AVFoundation
 
 class VideoPreviewViewController: UIViewController {
 
+  var onPageChange: ((Int) -> Void)?
+
   private let videoURLs: [URL]
   private let initialIndex: Int
   private var currentPageIndex: Int
@@ -157,6 +159,7 @@ extension VideoPreviewViewController: UICollectionViewDelegateFlowLayout {
     guard newPage != currentPageIndex else { return }
     currentPageIndex = newPage
     applyPlaybackState()
+    onPageChange?(newPage)
   }
 
   private func pageForCurrentContentOffset() -> Int {

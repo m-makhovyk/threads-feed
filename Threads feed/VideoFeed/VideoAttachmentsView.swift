@@ -72,6 +72,15 @@ class VideoAttachmentsView: UIView {
     applyPlaybackState()
   }
 
+  func scrollToVideo(at index: Int, animated: Bool) {
+    guard attachments.indices.contains(index) else { return }
+    let indexPath = IndexPath(item: index, section: 0)
+    collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
+    if !animated {
+      collectionView.layoutIfNeeded()
+    }
+  }
+
   private func recalculateActiveIndex() {
     guard attachments.count > 1 else {
       currentActiveIndex = 0
