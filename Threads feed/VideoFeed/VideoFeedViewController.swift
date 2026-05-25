@@ -18,6 +18,11 @@ class VideoFeedViewController: UIViewController {
     updateActiveCell()
   }
 
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    collectionView.contentInset.bottom = 100
+  }
+
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     guard !(presentedViewController is VideoPreviewViewController) else { return }
