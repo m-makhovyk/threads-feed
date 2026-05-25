@@ -15,7 +15,12 @@ class VideoPreviewViewController: UIViewController {
   private var hasScrolledToInitialPage = false
   private var lastCollectionViewSize: CGSize = .zero
   private var playerContexts: [Int: VideoPlayerContext] = [:]
+  private var swipeToDismiss: VideoSwipeToDismissInteraction?
   let zoomTransition = VideoZoomTransition()
+
+  var attachmentsCount: Int {
+    attachments.count
+  }
 
   var currentPage: Int {
     currentPageIndex
@@ -91,6 +96,14 @@ class VideoPreviewViewController: UIViewController {
       make.top.equalTo(view.safeAreaLayoutGuide).offset(8)
     }
     closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+
+    swipeToDismiss = VideoSwipeToDismissInteraction(
+      viewController: self,
+      backgroundView: backgroundView
+    )
+    swipeToDismiss?.onControlsVisible = { [weak self] visible in
+      self?.closeButton.alpha = visible ? 1 : 0
+    }
   }
 
   override func viewDidLayoutSubviews() {
@@ -122,6 +135,7 @@ class VideoPreviewViewController: UIViewController {
 
   @objc private func closeTapped() {
     closeButton.isEnabled = false
+    swipeToDismiss?.disable()
     zoomTransition.dismiss(from: self)
   }
 
@@ -383,6 +397,41 @@ class VideoZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     viewController.dismiss(animated: false)
   }
 
+  func finishInteractiveDismiss(
+    playerContext: VideoPlayerContext,
+    sourceInfo: SourceInfo,
+    visualFrameInPreview: CGRect,
+    cornerRadius: CGFloat,
+    viewController: VideoPreviewViewController
+  ) {
+    let page = viewController.currentPage
+    let clearBlackout = viewController.onClearBlackout
+
+    guard let feedCollectionView = sourceInfo.view.findOutermostCollectionView() else {
+      playerContext.setMuted(true)
+      viewController.onPlayerContextReadyForFeed?(page, playerContext)
+      clearBlackout?()
+      viewController.dismiss(animated: false)
+      return
+    }
+
+    runDismissClipAnimation(
+      playerContext: playerContext,
+      sourceInfo: sourceInfo,
+      feedCollectionView: feedCollectionView,
+      visualFrameInPreview: visualFrameInPreview,
+      cornerRadius: cornerRadius,
+      in: viewController.view,
+      completion: {
+        playerContext.setMuted(true)
+        viewController.onPlayerContextReadyForFeed?(page, playerContext)
+        clearBlackout?()
+      }
+    )
+
+    viewController.dismiss(animated: false)
+  }
+
   private func runDismissClipAnimation(
     playerContext: VideoPlayerContext,
     sourceInfo: SourceInfo,
@@ -498,6 +547,30 @@ class FullScreenVideoCell: UICollectionViewCell {
 
   func detachPlayerLayer() {
     playerView.playerLayer.player = nil
+  }
+
+  // Reparenting the playerView (not just its player) keeps the same AVPlayerLayer
+  // rendering, avoiding the brief black flash that comes from assigning the same
+  // player to a freshly-created layer.
+  func extractPlayerView() -> VideoPlayerView {
+    playerView.snp.removeConstraints()
+    playerView.removeFromSuperview()
+    playerView.translatesAutoresizingMaskIntoConstraints = true
+    return playerView
+  }
+
+  func restorePlayerView() {
+    playerView.transform = .identity
+    playerView.layer.cornerRadius = 0
+    playerView.layer.masksToBounds = false
+    playerView.backgroundColor = .black
+    playerView.playerLayer.videoGravity = .resizeAspect
+    guard playerView.superview !== contentView else { return }
+    playerView.translatesAutoresizingMaskIntoConstraints = false
+    contentView.addSubview(playerView)
+    playerView.snp.makeConstraints { make in
+      make.edges.equalToSuperview()
+    }
   }
 
   func play() {
