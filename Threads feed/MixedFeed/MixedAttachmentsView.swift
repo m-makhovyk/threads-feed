@@ -11,6 +11,7 @@ class MixedAttachmentsView: UIView {
   private var attachments: [MixedAttachment] = []
   private var isActive = false
   private var currentActiveIndex = 0
+  private var blackedOutIndex: Int?
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -57,6 +58,7 @@ class MixedAttachmentsView: UIView {
   func configure(with attachments: [MixedAttachment]) {
     self.attachments = attachments
     currentActiveIndex = 0
+    blackedOutIndex = nil
     collectionView.reloadData()
     collectionView.contentOffset = CGPoint(x: -LayoutConstants.contentLeadingInset, y: 0)
     collectionView.isScrollEnabled = attachments.count > 1
@@ -66,6 +68,7 @@ class MixedAttachmentsView: UIView {
     attachments = []
     isActive = false
     currentActiveIndex = 0
+    blackedOutIndex = nil
     collectionView.reloadData()
     collectionView.contentOffset = CGPoint(x: -LayoutConstants.contentLeadingInset, y: 0)
     collectionView.isScrollEnabled = false
@@ -75,6 +78,93 @@ class MixedAttachmentsView: UIView {
     isActive = active
     recalculateActiveIndex()
     applyPlaybackState()
+  }
+
+  func setBlackedOut(at index: Int, preserving contextToKeepPlaying: VideoPlayerContext? = nil) {
+    blackedOutIndex = index
+    for indexPath in collectionView.indexPathsForVisibleItems {
+      let isBlackedOut = indexPath.item == index
+      if let imageCell = collectionView.cellForItem(at: indexPath) as? MixedImagePageCell {
+        imageCell.setBlackedOut(isBlackedOut)
+      } else if let videoCell = collectionView.cellForItem(at: indexPath) as? MixedVideoPageCell {
+        videoCell.setBlackedOut(isBlackedOut)
+        if isBlackedOut {
+          if videoCell.playerContext !== contextToKeepPlaying {
+            videoCell.pause()
+          }
+        } else {
+          videoCell.pause()
+        }
+      }
+    }
+  }
+
+  func clearBlackout() {
+    defer {
+      blackedOutIndex = nil
+    }
+
+    guard let blackedOutIndex else { return }
+
+    let indexPath = IndexPath(item: blackedOutIndex, section: 0)
+    if let imageCell = collectionView.cellForItem(at: indexPath) as? MixedImagePageCell {
+      imageCell.setBlackedOut(false)
+    } else if let videoCell = collectionView.cellForItem(at: indexPath) as? MixedVideoPageCell {
+      videoCell.setBlackedOut(false)
+    }
+
+    applyPlaybackState()
+  }
+
+  func scrollToAttachment(at index: Int, animated: Bool) {
+    guard attachments.indices.contains(index) else { return }
+    let indexPath = IndexPath(item: index, section: 0)
+    collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
+    currentActiveIndex = index
+    if !animated {
+      collectionView.layoutIfNeeded()
+    }
+    applyPlaybackState()
+  }
+
+  func replacePlayerContext(_ context: VideoPlayerContext, at index: Int) {
+    guard attachments.indices.contains(index) else { return }
+
+    let indexPath = IndexPath(item: index, section: 0)
+    guard let cell = collectionView.cellForItem(at: indexPath) as? MixedVideoPageCell else { return }
+
+    context.setMuted(true)
+    cell.setPlayerContext(context)
+    cell.setBlackedOut(index == blackedOutIndex)
+
+    if isActive && index == currentActiveIndex {
+      context.play()
+    } else {
+      context.pause()
+    }
+  }
+
+  func attachmentView(at index: Int) -> UIView? {
+    let indexPath = IndexPath(item: index, section: 0)
+    if let imageCell = collectionView.cellForItem(at: indexPath) as? MixedImagePageCell {
+      return imageCell.lazyImageView
+    }
+    if let videoCell = collectionView.cellForItem(at: indexPath) as? MixedVideoPageCell {
+      return videoCell.playerView
+    }
+    return nil
+  }
+
+  func image(at index: Int) -> UIImage? {
+    let indexPath = IndexPath(item: index, section: 0)
+    guard let cell = collectionView.cellForItem(at: indexPath) as? MixedImagePageCell else { return nil }
+    return cell.lazyImageView.imageView.image
+  }
+
+  func playerContext(at index: Int) -> VideoPlayerContext? {
+    let indexPath = IndexPath(item: index, section: 0)
+    guard let cell = collectionView.cellForItem(at: indexPath) as? MixedVideoPageCell else { return nil }
+    return cell.playerContext
   }
 
   private func recalculateActiveIndex() {
@@ -131,6 +221,7 @@ extension MixedAttachmentsView: UICollectionViewDataSource {
         for: indexPath
       ) as! MixedImagePageCell
       cell.configure(with: attachment.url)
+      cell.setBlackedOut(indexPath.item == blackedOutIndex)
       return cell
     case .video(let attachment):
       let cell = collectionView.dequeueReusableCell(
@@ -138,6 +229,7 @@ extension MixedAttachmentsView: UICollectionViewDataSource {
         for: indexPath
       ) as! MixedVideoPageCell
       cell.configure(with: attachment.url)
+      cell.setBlackedOut(indexPath.item == blackedOutIndex)
       if isActive && indexPath.item == currentActiveIndex {
         cell.play()
       }
@@ -187,6 +279,7 @@ private class MixedImagePageCell: UICollectionViewCell {
   static let reuseIdentifier = "MixedImagePageCell"
 
   let lazyImageView = LazyImageView()
+  private let blackoutView = UIView()
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -197,7 +290,16 @@ private class MixedImagePageCell: UICollectionViewCell {
     lazyImageView.placeholderView = makePlaceholder()
     contentView.addSubview(lazyImageView)
 
+    blackoutView.backgroundColor = .black
+    blackoutView.layer.cornerRadius = LayoutConstants.attachmentCornerRadius
+    blackoutView.isHidden = true
+    contentView.addSubview(blackoutView)
+
     lazyImageView.snp.makeConstraints { make in
+      make.edges.equalToSuperview()
+    }
+
+    blackoutView.snp.makeConstraints { make in
       make.edges.equalToSuperview()
     }
   }
@@ -210,9 +312,16 @@ private class MixedImagePageCell: UICollectionViewCell {
     lazyImageView.url = url
   }
 
+  func setBlackedOut(_ blacked: Bool) {
+    blackoutView.isHidden = !blacked
+    lazyImageView.isHidden = blacked
+  }
+
   override func prepareForReuse() {
     super.prepareForReuse()
     lazyImageView.url = nil
+    lazyImageView.isHidden = false
+    blackoutView.isHidden = true
   }
 
   private func makePlaceholder() -> UIView {
@@ -230,6 +339,7 @@ private class MixedVideoPageCell: UICollectionViewCell {
   static let reuseIdentifier = "MixedVideoPageCell"
 
   let playerView = VideoPlayerView()
+  private let blackoutView = UIView()
   private(set) var playerContext: VideoPlayerContext?
 
   override init(frame: CGRect) {
@@ -241,7 +351,16 @@ private class MixedVideoPageCell: UICollectionViewCell {
     playerView.playerLayer.videoGravity = .resizeAspectFill
     contentView.addSubview(playerView)
 
+    blackoutView.backgroundColor = .black
+    blackoutView.layer.cornerRadius = LayoutConstants.attachmentCornerRadius
+    blackoutView.isHidden = true
+    contentView.addSubview(blackoutView)
+
     playerView.snp.makeConstraints { make in
+      make.edges.equalToSuperview()
+    }
+
+    blackoutView.snp.makeConstraints { make in
       make.edges.equalToSuperview()
     }
   }
@@ -252,13 +371,25 @@ private class MixedVideoPageCell: UICollectionViewCell {
 
   func configure(with url: URL) {
     if playerContext?.url == url {
+      playerContext?.setMuted(true)
       playerView.playerLayer.player = playerContext?.player
       return
     }
     playerContext?.pause()
-    let context = VideoPlayerContext(url: url, muted: true)
+    setPlayerContext(VideoPlayerContext(url: url, muted: true))
+  }
+
+  func setPlayerContext(_ context: VideoPlayerContext) {
+    if playerContext !== context {
+      playerContext?.pause()
+    }
     playerContext = context
+    context.setMuted(true)
     playerView.playerLayer.player = context.player
+  }
+
+  func setBlackedOut(_ blacked: Bool) {
+    blackoutView.isHidden = !blacked
   }
 
   func play() {
@@ -274,5 +405,6 @@ private class MixedVideoPageCell: UICollectionViewCell {
     playerContext?.pause()
     playerContext = nil
     playerView.playerLayer.player = nil
+    blackoutView.isHidden = true
   }
 }

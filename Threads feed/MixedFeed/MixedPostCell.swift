@@ -51,6 +51,34 @@ class MixedPostCell: UICollectionViewCell {
     attachmentsView.setActive(active)
   }
 
+  func attachmentView(forAttachmentAt index: Int) -> UIView? {
+    attachmentsView.attachmentView(at: index)
+  }
+
+  func image(forAttachmentAt index: Int) -> UIImage? {
+    attachmentsView.image(at: index)
+  }
+
+  func playerContext(forAttachmentAt index: Int) -> VideoPlayerContext? {
+    attachmentsView.playerContext(at: index)
+  }
+
+  func scrollToAttachment(at index: Int, animated: Bool) {
+    attachmentsView.scrollToAttachment(at: index, animated: animated)
+  }
+
+  func setBlackedOutAttachment(at index: Int, preserving contextToKeepPlaying: VideoPlayerContext? = nil) {
+    attachmentsView.setBlackedOut(at: index, preserving: contextToKeepPlaying)
+  }
+
+  func clearBlackoutAttachment() {
+    attachmentsView.clearBlackout()
+  }
+
+  func replacePlayerContext(_ context: VideoPlayerContext, forAttachmentAt index: Int) {
+    attachmentsView.replacePlayerContext(context, at: index)
+  }
+
   private func setupViews() {
     avatarImageView.contentMode = .scaleAspectFill
     avatarImageView.clipsToBounds = true

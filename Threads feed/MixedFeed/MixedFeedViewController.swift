@@ -111,15 +111,81 @@ extension MixedFeedViewController: UICollectionViewDataSource {
       for: indexPath
     ) as! MixedPostCell
     cell.configure(with: posts[indexPath.item])
-    cell.onAttachmentTapped = { [weak self] attachments, index in
+    cell.onAttachmentTapped = { [weak self, weak cell] attachments, index in
       guard let self else { return }
+      let pausedActivePath: IndexPath? = (self.activeIndexPath != indexPath) ? self.activeIndexPath : nil
+      if let pausedActivePath {
+        self.setActive(false, at: pausedActivePath)
+      }
+      let initialPlayerContext: VideoPlayerContext? = {
+        guard case .video = attachments[index] else { return nil }
+        return cell?.playerContext(forAttachmentAt: index)
+      }()
       let preview = MixedPreviewViewController(
         attachments: attachments,
-        initialIndex: index
+        initialIndex: index,
+        initialPlayerContext: initialPlayerContext
       )
+      preview.zoomTransition.sourceProvider = { [weak self, weak preview] pageIndex in
+        guard let self else { return nil }
+        return self.sourceInfo(forPage: pageIndex, at: indexPath, preview: preview)
+      }
+      preview.onPageChange = { [weak cell] page in
+        cell?.scrollToAttachment(at: page, animated: false)
+      }
+      preview.onBlackoutIndex = { [weak cell, weak preview] index in
+        cell?.setBlackedOutAttachment(at: index, preserving: preview?.currentPlayerContext())
+      }
+      preview.onClearBlackout = { [weak self, weak cell] in
+        cell?.clearBlackoutAttachment()
+        if let pausedActivePath {
+          self?.setActive(true, at: pausedActivePath)
+        }
+      }
+      preview.onPlayerContextReadyForFeed = { [weak cell] index, context in
+        cell?.replacePlayerContext(context, forAttachmentAt: index)
+      }
       self.present(preview, animated: true)
     }
     return cell
+  }
+}
+
+// MARK: - Transition Source
+
+extension MixedFeedViewController {
+
+  private func sourceInfo(
+    forPage pageIndex: Int,
+    at indexPath: IndexPath,
+    preview: MixedPreviewViewController?
+  ) -> MixedZoomTransition.SourceInfo? {
+    guard let cell = collectionView.cellForItem(at: indexPath) as? MixedPostCell else { return nil }
+    guard let sourceView = cell.attachmentView(forAttachmentAt: pageIndex) else { return nil }
+    guard posts[indexPath.item].attachments.indices.contains(pageIndex) else { return nil }
+
+    let attachment = posts[indexPath.item].attachments[pageIndex]
+    let contentSize = CGSize(width: attachment.width, height: attachment.height)
+
+    switch attachment {
+    case .image:
+      guard let image = preview?.currentImage(at: pageIndex) ?? cell.image(forAttachmentAt: pageIndex) else { return nil }
+      return MixedZoomTransition.SourceInfo(
+        view: sourceView,
+        contentSize: contentSize,
+        cornerRadius: LayoutConstants.attachmentCornerRadius,
+        media: .image(image)
+      )
+    case .video:
+      let context = preview?.playerContext(forPage: pageIndex) ?? cell.playerContext(forAttachmentAt: pageIndex)
+      guard let context else { return nil }
+      return MixedZoomTransition.SourceInfo(
+        view: sourceView,
+        contentSize: contentSize,
+        cornerRadius: LayoutConstants.attachmentCornerRadius,
+        media: .video(context)
+      )
+    }
   }
 }
 
