@@ -20,9 +20,9 @@ class MixedPreviewViewController: UIViewController {
   private var areControlsHidden = false
   let zoomTransition = MixedZoomTransition()
 
-  var currentImageCell: FullScreenMixedImageCell? {
+  var currentImageCell: ZoomableImageCell? {
     let indexPath = IndexPath(item: currentPageIndex, section: 0)
-    return collectionView.cellForItem(at: indexPath) as? FullScreenMixedImageCell
+    return collectionView.cellForItem(at: indexPath) as? ZoomableImageCell
   }
 
   var currentVideoCell: FullScreenMixedVideoCell? {
@@ -49,8 +49,8 @@ class MixedPreviewViewController: UIViewController {
     cv.showsHorizontalScrollIndicator = false
     cv.backgroundColor = .clear
     cv.register(
-      FullScreenMixedImageCell.self,
-      forCellWithReuseIdentifier: FullScreenMixedImageCell.reuseIdentifier
+      ZoomableImageCell.self,
+      forCellWithReuseIdentifier: ZoomableImageCell.reuseIdentifier
     )
     cv.register(
       FullScreenMixedVideoCell.self,
@@ -112,6 +112,7 @@ class MixedPreviewViewController: UIViewController {
     }
 
     let tap = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
+    tap.delegate = self
     view.addGestureRecognizer(tap)
   }
 
@@ -185,8 +186,8 @@ class MixedPreviewViewController: UIViewController {
 
   func currentImage(at pageIndex: Int) -> UIImage? {
     let indexPath = IndexPath(item: pageIndex, section: 0)
-    guard let cell = collectionView.cellForItem(at: indexPath) as? FullScreenMixedImageCell else { return nil }
-    return cell.currentImage
+    guard let cell = collectionView.cellForItem(at: indexPath) as? ZoomableImageCell else { return nil }
+    return cell.imageView.image
   }
 
   func refreshCurrentPagePlayerLayer() {
@@ -229,9 +230,9 @@ extension MixedPreviewViewController: UICollectionViewDataSource {
     switch attachments[indexPath.item] {
     case .image(let attachment):
       let cell = collectionView.dequeueReusableCell(
-        withReuseIdentifier: FullScreenMixedImageCell.reuseIdentifier,
+        withReuseIdentifier: ZoomableImageCell.reuseIdentifier,
         for: indexPath
-      ) as! FullScreenMixedImageCell
+      ) as! ZoomableImageCell
       cell.configure(with: attachment.url)
       return cell
     case .video:
@@ -283,6 +284,11 @@ extension MixedPreviewViewController: UICollectionViewDelegateFlowLayout {
   private func updateCurrentPageIfNeeded() {
     let newPage = pageForCurrentContentOffset()
     guard newPage != currentPageIndex else { return }
+
+    let previousIndexPath = IndexPath(item: currentPageIndex, section: 0)
+    let previousImageCell = collectionView.cellForItem(at: previousIndexPath) as? ZoomableImageCell
+    previousImageCell?.resetZoom()
+
     currentPageIndex = newPage
     applyPlaybackState()
     onPageChange?(newPage)
@@ -294,6 +300,16 @@ extension MixedPreviewViewController: UICollectionViewDelegateFlowLayout {
     let rawPage = collectionView.contentOffset.x / collectionView.bounds.width
     let clamped = min(max(Int(round(rawPage)), 0), attachments.count - 1)
     return clamped
+  }
+}
+
+extension MixedPreviewViewController: UIGestureRecognizerDelegate {
+
+  func gestureRecognizer(
+    _ gestureRecognizer: UIGestureRecognizer,
+    shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer
+  ) -> Bool {
+    otherGestureRecognizer.name == ZoomableImageCell.doubleTapGestureName
   }
 }
 
@@ -699,41 +715,6 @@ class MixedZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
         }
       }
     }
-  }
-}
-
-// MARK: - Full-screen image page
-
-class FullScreenMixedImageCell: UICollectionViewCell {
-
-  static let reuseIdentifier = "FullScreenMixedImageCell"
-
-  let lazyImageView = LazyImageView()
-
-  var currentImage: UIImage? {
-    lazyImageView.imageView.image
-  }
-
-  override init(frame: CGRect) {
-    super.init(frame: frame)
-    lazyImageView.imageView.contentMode = .scaleAspectFit
-    contentView.addSubview(lazyImageView)
-    lazyImageView.snp.makeConstraints { make in
-      make.edges.equalToSuperview()
-    }
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-
-  func configure(with url: URL) {
-    lazyImageView.url = url
-  }
-
-  override func prepareForReuse() {
-    super.prepareForReuse()
-    lazyImageView.url = nil
   }
 }
 
