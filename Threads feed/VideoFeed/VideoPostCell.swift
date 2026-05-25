@@ -6,7 +6,7 @@ class VideoPostCell: UICollectionViewCell {
 
   static let reuseIdentifier = "VideoPostCell"
 
-  var onVideoTapped: ((_ urls: [URL], _ index: Int) -> Void)? {
+  var onVideoTapped: ((_ attachments: [VideoAttachment], _ index: Int, _ playerContext: VideoPlayerContext?) -> Void)? {
     get { attachmentsView.onVideoTapped }
     set { attachmentsView.onVideoTapped = newValue }
   }
@@ -53,6 +53,26 @@ class VideoPostCell: UICollectionViewCell {
 
   func scrollToAttachment(at index: Int, animated: Bool) {
     attachmentsView.scrollToVideo(at: index, animated: animated)
+  }
+
+  func videoView(forAttachmentAt index: Int) -> UIView? {
+    attachmentsView.videoView(at: index)
+  }
+
+  func playerContext(forAttachmentAt index: Int) -> VideoPlayerContext? {
+    attachmentsView.playerContext(at: index)
+  }
+
+  func replacePlayerContext(_ context: VideoPlayerContext, forAttachmentAt index: Int) {
+    attachmentsView.replacePlayerContext(context, at: index)
+  }
+
+  func setBlackedOutAttachment(at index: Int, preserving contextToKeepPlaying: VideoPlayerContext? = nil) {
+    attachmentsView.setBlackedOut(at: index, preserving: contextToKeepPlaying)
+  }
+
+  func clearBlackoutAttachment() {
+    attachmentsView.clearBlackout()
   }
 
   private func setupViews() {

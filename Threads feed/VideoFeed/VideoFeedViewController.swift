@@ -20,6 +20,7 @@ class VideoFeedViewController: UIViewController {
 
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
+    guard !(presentedViewController is VideoPreviewViewController) else { return }
     setActive(false, at: activeIndexPath)
     activeIndexPath = nil
   }
@@ -97,12 +98,30 @@ extension VideoFeedViewController: UICollectionViewDataSource {
       for: indexPath
     ) as! VideoPostCell
     cell.configure(with: posts[indexPath.item])
-    cell.onVideoTapped = { [weak self, weak cell] urls, index in
-      let preview = VideoPreviewViewController(videoURLs: urls, initialIndex: index)
+    cell.onVideoTapped = { [weak self, weak cell] attachments, index, playerContext in
+      guard let self else { return }
+      let preview = VideoPreviewViewController(
+        attachments: attachments,
+        initialIndex: index,
+        initialPlayerContext: playerContext
+      )
+      preview.zoomTransition.sourceProvider = { [weak self, weak preview] pageIndex in
+        guard let self else { return nil }
+        return self.sourceInfo(forPage: pageIndex, at: indexPath, previewAttachment: preview?.attachment(at: pageIndex))
+      }
       preview.onPageChange = { [weak cell] page in
         cell?.scrollToAttachment(at: page, animated: false)
       }
-      self?.present(preview, animated: true)
+      preview.onBlackoutIndex = { [weak cell, weak preview] index in
+        cell?.setBlackedOutAttachment(at: index, preserving: preview?.currentPlayerContext())
+      }
+      preview.onClearBlackout = { [weak cell] in
+        cell?.clearBlackoutAttachment()
+      }
+      preview.onPlayerContextReadyForFeed = { [weak cell] index, context in
+        cell?.replacePlayerContext(context, forAttachmentAt: index)
+      }
+      self.present(preview, animated: true)
     }
     return cell
   }
@@ -120,5 +139,33 @@ extension VideoFeedViewController: UICollectionViewDelegate {
     forItemAt indexPath: IndexPath
   ) {
     updateActiveCell()
+  }
+}
+
+// MARK: - Transition Source
+
+extension VideoFeedViewController {
+
+  private func sourceInfo(
+    forPage pageIndex: Int,
+    at indexPath: IndexPath,
+    previewAttachment: VideoAttachment?
+  ) -> VideoZoomTransition.SourceInfo? {
+    guard let cell = collectionView.cellForItem(at: indexPath) as? VideoPostCell else { return nil }
+    guard let sourceView = cell.videoView(forAttachmentAt: pageIndex) else { return nil }
+
+    let attachment: VideoAttachment
+    if let previewAttachment {
+      attachment = previewAttachment
+    } else {
+      guard posts[indexPath.item].attachments.indices.contains(pageIndex) else { return nil }
+      attachment = posts[indexPath.item].attachments[pageIndex]
+    }
+
+    return VideoZoomTransition.SourceInfo(
+      view: sourceView,
+      contentSize: CGSize(width: attachment.width, height: attachment.height),
+      cornerRadius: LayoutConstants.attachmentCornerRadius
+    )
   }
 }

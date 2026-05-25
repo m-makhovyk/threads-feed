@@ -2,14 +2,42 @@ import UIKit
 import SnapKit
 import AVFoundation
 
+final class VideoPlayerContext {
+
+  let url: URL
+  let player: AVQueuePlayer
+  private let looper: AVPlayerLooper
+
+  init(url: URL, muted: Bool) {
+    self.url = url
+
+    let item = AVPlayerItem(url: url)
+    let queuePlayer = AVQueuePlayer()
+    queuePlayer.isMuted = muted
+
+    self.player = queuePlayer
+    self.looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
+  }
+
+  func setMuted(_ muted: Bool) {
+    player.isMuted = muted
+  }
+}
+
+class VideoPlayerView: UIView {
+  override class var layerClass: AnyClass { AVPlayerLayer.self }
+  var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
+}
+
 class VideoAttachmentsView: UIView {
 
-  var onVideoTapped: ((_ urls: [URL], _ index: Int) -> Void)?
+  var onVideoTapped: ((_ attachments: [VideoAttachment], _ index: Int, _ playerContext: VideoPlayerContext?) -> Void)?
 
   private var collectionView: UICollectionView!
   private var attachments: [VideoAttachment] = []
   private var isActive = false
   private var currentActiveIndex = 0
+  private var blackedOutIndex: Int?
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -52,6 +80,7 @@ class VideoAttachmentsView: UIView {
   func configure(with attachments: [VideoAttachment]) {
     self.attachments = attachments
     currentActiveIndex = 0
+    blackedOutIndex = nil
     collectionView.reloadData()
     collectionView.contentOffset = CGPoint(x: -LayoutConstants.contentLeadingInset, y: 0)
     collectionView.isScrollEnabled = attachments.count > 1
@@ -61,6 +90,7 @@ class VideoAttachmentsView: UIView {
     attachments = []
     isActive = false
     currentActiveIndex = 0
+    blackedOutIndex = nil
     collectionView.reloadData()
     collectionView.contentOffset = CGPoint(x: -LayoutConstants.contentLeadingInset, y: 0)
     collectionView.isScrollEnabled = false
@@ -72,12 +102,68 @@ class VideoAttachmentsView: UIView {
     applyPlaybackState()
   }
 
+  func setBlackedOut(at index: Int, preserving contextToKeepPlaying: VideoPlayerContext? = nil) {
+    blackedOutIndex = index
+    for indexPath in collectionView.indexPathsForVisibleItems {
+      guard let cell = collectionView.cellForItem(at: indexPath) as? AttachmentVideoCell else { continue }
+      let isBlackedOut = indexPath.item == index
+      cell.setBlackedOut(isBlackedOut)
+      if isBlackedOut && cell.playerContext !== contextToKeepPlaying {
+        cell.pause()
+      }
+    }
+  }
+
+  func clearBlackout() {
+    defer {
+      blackedOutIndex = nil
+    }
+
+    guard let blackedOutIndex else { return }
+
+    let indexPath = IndexPath(item: blackedOutIndex, section: 0)
+    if let cell = collectionView.cellForItem(at: indexPath) as? AttachmentVideoCell {
+      cell.setBlackedOut(false)
+    }
+  }
+
   func scrollToVideo(at index: Int, animated: Bool) {
     guard attachments.indices.contains(index) else { return }
     let indexPath = IndexPath(item: index, section: 0)
     collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
+    currentActiveIndex = index
     if !animated {
       collectionView.layoutIfNeeded()
+    }
+    applyPlaybackState()
+  }
+
+  func videoView(at index: Int) -> UIView? {
+    let indexPath = IndexPath(item: index, section: 0)
+    guard let cell = collectionView.cellForItem(at: indexPath) as? AttachmentVideoCell else { return nil }
+    return cell.playerView
+  }
+
+  func playerContext(at index: Int) -> VideoPlayerContext? {
+    let indexPath = IndexPath(item: index, section: 0)
+    guard let cell = collectionView.cellForItem(at: indexPath) as? AttachmentVideoCell else { return nil }
+    return cell.playerContext
+  }
+
+  func replacePlayerContext(_ context: VideoPlayerContext, at index: Int) {
+    guard attachments.indices.contains(index) else { return }
+
+    let indexPath = IndexPath(item: index, section: 0)
+    guard let cell = collectionView.cellForItem(at: indexPath) as? AttachmentVideoCell else { return }
+
+    context.setMuted(true)
+    cell.setPlayerContext(context)
+    cell.setBlackedOut(index == blackedOutIndex)
+
+    if isActive && index == currentActiveIndex {
+      context.player.play()
+    } else {
+      context.player.pause()
     }
   }
 
@@ -133,6 +219,7 @@ extension VideoAttachmentsView: UICollectionViewDataSource {
       for: indexPath
     ) as! AttachmentVideoCell
     cell.configure(with: attachments[indexPath.item].url)
+    cell.setBlackedOut(indexPath.item == blackedOutIndex)
     if isActive && indexPath.item == currentActiveIndex {
       cell.play()
     }
@@ -161,8 +248,7 @@ extension VideoAttachmentsView: UICollectionViewDelegateFlowLayout {
     _ collectionView: UICollectionView,
     didSelectItemAt indexPath: IndexPath
   ) {
-    let urls = attachments.map(\.url)
-    onVideoTapped?(urls, indexPath.item)
+    onVideoTapped?(attachments, indexPath.item, playerContext(at: indexPath.item))
   }
 
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -175,22 +261,15 @@ extension VideoAttachmentsView: UICollectionViewDelegateFlowLayout {
   }
 }
 
-// MARK: - Player View
-
-private class PlayerView: UIView {
-  override class var layerClass: AnyClass { AVPlayerLayer.self }
-  var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
-}
-
 // MARK: - Attachment Cell
 
 private class AttachmentVideoCell: UICollectionViewCell {
 
   static let reuseIdentifier = "AttachmentVideoCell"
 
-  private let playerView = PlayerView()
-  private var player: AVQueuePlayer?
-  private var looper: AVPlayerLooper?
+  let playerView = VideoPlayerView()
+  private let blackoutView = UIView()
+  private(set) var playerContext: VideoPlayerContext?
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -201,7 +280,16 @@ private class AttachmentVideoCell: UICollectionViewCell {
     playerView.playerLayer.videoGravity = .resizeAspectFill
     contentView.addSubview(playerView)
 
+    blackoutView.backgroundColor = .black
+    blackoutView.layer.cornerRadius = LayoutConstants.attachmentCornerRadius
+    blackoutView.isHidden = true
+    contentView.addSubview(blackoutView)
+
     playerView.snp.makeConstraints { make in
+      make.edges.equalToSuperview()
+    }
+
+    blackoutView.snp.makeConstraints { make in
       make.edges.equalToSuperview()
     }
   }
@@ -211,28 +299,42 @@ private class AttachmentVideoCell: UICollectionViewCell {
   }
 
   func configure(with url: URL) {
-    let item = AVPlayerItem(url: url)
-    let queuePlayer = AVQueuePlayer()
-    queuePlayer.isMuted = true
-    looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
-    player = queuePlayer
-    playerView.playerLayer.player = queuePlayer
+    if playerContext?.url == url {
+      playerContext?.setMuted(true)
+      playerView.playerLayer.player = playerContext?.player
+      return
+    }
+
+    playerContext?.player.pause()
+    setPlayerContext(VideoPlayerContext(url: url, muted: true))
+  }
+
+  func setPlayerContext(_ context: VideoPlayerContext) {
+    if playerContext !== context {
+      playerContext?.player.pause()
+    }
+    playerContext = context
+    context.setMuted(true)
+    playerView.playerLayer.player = context.player
+  }
+
+  func setBlackedOut(_ blacked: Bool) {
+    blackoutView.isHidden = !blacked
   }
 
   func play() {
-    player?.play()
+    playerContext?.player.play()
   }
 
   func pause() {
-    player?.pause()
+    playerContext?.player.pause()
   }
 
   override func prepareForReuse() {
     super.prepareForReuse()
-    player?.pause()
-    player?.removeAllItems()
-    looper = nil
-    player = nil
+    playerContext?.player.pause()
+    playerContext = nil
     playerView.playerLayer.player = nil
+    blackoutView.isHidden = true
   }
 }
