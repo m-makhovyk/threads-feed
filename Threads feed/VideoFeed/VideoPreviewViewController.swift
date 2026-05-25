@@ -148,9 +148,9 @@ class VideoPreviewViewController: UIViewController {
     for (index, context) in playerContexts {
       if index == currentPageIndex {
         context.setMuted(false)
-        context.player.play()
+        context.play()
       } else {
-        context.player.pause()
+        context.pause()
       }
     }
 
@@ -501,16 +501,16 @@ class FullScreenVideoCell: UICollectionViewCell {
   }
 
   func play() {
-    playerContext?.player.play()
+    playerContext?.play()
   }
 
   func pause() {
-    playerContext?.player.pause()
+    playerContext?.pause()
   }
 
   override func prepareForReuse() {
     super.prepareForReuse()
-    playerContext?.player.pause()
+    playerContext?.pause()
     playerContext = nil
     playerView.playerLayer.player = nil
   }

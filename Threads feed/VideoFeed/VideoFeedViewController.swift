@@ -100,6 +100,10 @@ extension VideoFeedViewController: UICollectionViewDataSource {
     cell.configure(with: posts[indexPath.item])
     cell.onVideoTapped = { [weak self, weak cell] attachments, index, playerContext in
       guard let self else { return }
+      let pausedActivePath: IndexPath? = (self.activeIndexPath != indexPath) ? self.activeIndexPath : nil
+      if let pausedActivePath {
+        self.setActive(false, at: pausedActivePath)
+      }
       let preview = VideoPreviewViewController(
         attachments: attachments,
         initialIndex: index,
@@ -115,8 +119,11 @@ extension VideoFeedViewController: UICollectionViewDataSource {
       preview.onBlackoutIndex = { [weak cell, weak preview] index in
         cell?.setBlackedOutAttachment(at: index, preserving: preview?.currentPlayerContext())
       }
-      preview.onClearBlackout = { [weak cell] in
+      preview.onClearBlackout = { [weak self, weak cell] in
         cell?.clearBlackoutAttachment()
+        if let pausedActivePath {
+          self?.setActive(true, at: pausedActivePath)
+        }
       }
       preview.onPlayerContextReadyForFeed = { [weak cell] index, context in
         cell?.replacePlayerContext(context, forAttachmentAt: index)

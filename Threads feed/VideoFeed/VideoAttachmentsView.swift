@@ -20,6 +20,14 @@ final class VideoPlayerContext {
     self.looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
   }
 
+  func play() {
+    player.play()
+  }
+
+  func pause() {
+    player.pause()
+  }
+
   func setMuted(_ muted: Bool) {
     player.isMuted = muted
   }
@@ -109,7 +117,11 @@ class VideoAttachmentsView: UIView {
       guard let cell = collectionView.cellForItem(at: indexPath) as? AttachmentVideoCell else { continue }
       let isBlackedOut = indexPath.item == index
       cell.setBlackedOut(isBlackedOut)
-      if isBlackedOut && cell.playerContext !== contextToKeepPlaying {
+      if isBlackedOut {
+        if cell.playerContext !== contextToKeepPlaying {
+          cell.pause()
+        }
+      } else {
         cell.pause()
       }
     }
@@ -126,6 +138,8 @@ class VideoAttachmentsView: UIView {
     if let cell = collectionView.cellForItem(at: indexPath) as? AttachmentVideoCell {
       cell.setBlackedOut(false)
     }
+
+    applyPlaybackState()
   }
 
   func scrollToVideo(at index: Int, animated: Bool) {
@@ -162,9 +176,9 @@ class VideoAttachmentsView: UIView {
     cell.setBlackedOut(index == blackedOutIndex)
 
     if isActive && index == currentActiveIndex {
-      context.player.play()
+      context.play()
     } else {
-      context.player.pause()
+      context.pause()
     }
   }
 
@@ -306,13 +320,13 @@ private class AttachmentVideoCell: UICollectionViewCell {
       return
     }
 
-    playerContext?.player.pause()
+    playerContext?.pause()
     setPlayerContext(VideoPlayerContext(url: url, muted: true))
   }
 
   func setPlayerContext(_ context: VideoPlayerContext) {
     if playerContext !== context {
-      playerContext?.player.pause()
+      playerContext?.pause()
     }
     playerContext = context
     context.setMuted(true)
@@ -324,16 +338,16 @@ private class AttachmentVideoCell: UICollectionViewCell {
   }
 
   func play() {
-    playerContext?.player.play()
+    playerContext?.play()
   }
 
   func pause() {
-    playerContext?.player.pause()
+    playerContext?.pause()
   }
 
   override func prepareForReuse() {
     super.prepareForReuse()
-    playerContext?.player.pause()
+    playerContext?.pause()
     playerContext = nil
     playerView.playerLayer.player = nil
     blackoutView.isHidden = true
