@@ -8,10 +8,12 @@
 - [x] Pinch to zoom
 
 ## Video feed
-- [ ] Feed with video attachments
-- [ ] Full-screen video preview
-- [ ] Custom transition to full-screen preview
-- [ ] Swipe to dismiss
+- [x] Feed with video attachments
+- [x] Full-screen video preview
+- [x] Custom transition to full-screen preview
+- [x] Swipe to dismiss
+- [ ] Video progress bar
+- [ ] Mute button
 
 ## Mixed feed
 - [ ] Feed with mixed (image + video) attachments
@@ -20,3 +22,4 @@
 ## Other
 - [ ] Stitch images by gestures
 - [ ] Tall images lagging in feed (600×1500)
+- [ ] Weird video transition to full screen (854x360)
