@@ -6,6 +6,11 @@ class MixedPostCell: UICollectionViewCell {
 
   static let reuseIdentifier = "MixedPostCell"
 
+  var onAttachmentTapped: ((_ attachments: [MixedAttachment], _ index: Int) -> Void)? {
+    get { attachmentsView.onAttachmentTapped }
+    set { attachmentsView.onAttachmentTapped = newValue }
+  }
+
   private let avatarImageView = LazyImageView()
   private let headerStack = UIStackView()
   private let usernameLabel = UILabel()
@@ -39,6 +44,7 @@ class MixedPostCell: UICollectionViewCell {
 
     attachmentsView.isHidden = true
     attachmentsView.reset()
+    attachmentsView.onAttachmentTapped = nil
   }
 
   func setActive(_ active: Bool) {

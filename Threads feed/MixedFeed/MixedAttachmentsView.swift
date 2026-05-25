@@ -5,6 +5,8 @@ import NukeUI
 
 class MixedAttachmentsView: UIView {
 
+  var onAttachmentTapped: ((_ attachments: [MixedAttachment], _ index: Int) -> Void)?
+
   private var collectionView: UICollectionView!
   private var attachments: [MixedAttachment] = []
   private var isActive = false
@@ -168,6 +170,13 @@ extension MixedAttachmentsView: UICollectionViewDelegateFlowLayout {
     if currentActiveIndex != previousIndex {
       applyPlaybackState()
     }
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didSelectItemAt indexPath: IndexPath
+  ) {
+    onAttachmentTapped?(attachments, indexPath.item)
   }
 }
 

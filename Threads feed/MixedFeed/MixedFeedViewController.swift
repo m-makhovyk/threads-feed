@@ -111,6 +111,14 @@ extension MixedFeedViewController: UICollectionViewDataSource {
       for: indexPath
     ) as! MixedPostCell
     cell.configure(with: posts[indexPath.item])
+    cell.onAttachmentTapped = { [weak self] attachments, index in
+      guard let self else { return }
+      let preview = MixedPreviewViewController(
+        attachments: attachments,
+        initialIndex: index
+      )
+      self.present(preview, animated: true)
+    }
     return cell
   }
 }
