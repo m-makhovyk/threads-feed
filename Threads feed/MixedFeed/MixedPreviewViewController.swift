@@ -17,6 +17,7 @@ class MixedPreviewViewController: UIViewController {
   private var lastCollectionViewSize: CGSize = .zero
   private var playerContexts: [Int: VideoPlayerContext] = [:]
   private var swipeToDismiss: MixedSwipeToDismissInteraction?
+  private var areControlsHidden = false
   let zoomTransition = MixedZoomTransition()
 
   var currentImageCell: FullScreenMixedImageCell? {
@@ -107,7 +108,31 @@ class MixedPreviewViewController: UIViewController {
       backgroundView: backgroundView
     )
     swipeToDismiss?.onControlsVisible = { [weak self] visible in
-      self?.closeButton.alpha = visible ? 1 : 0
+      self?.setControlsHidden(!visible, animated: false)
+    }
+
+    let tap = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
+    view.addGestureRecognizer(tap)
+  }
+
+  @objc private func viewTapped() {
+    setControlsHidden(!areControlsHidden, animated: true)
+  }
+
+  private var controls: [UIView] {
+    [closeButton]
+  }
+
+  private func setControlsHidden(_ hidden: Bool, animated: Bool) {
+    areControlsHidden = hidden
+    let targetAlpha: CGFloat = hidden ? 0 : 1
+    let apply = { self.controls.forEach { $0.alpha = targetAlpha } }
+    if animated {
+      UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut, .beginFromCurrentState]) {
+        apply()
+      }
+    } else {
+      apply()
     }
   }
 
