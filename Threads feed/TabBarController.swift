@@ -5,6 +5,13 @@ class TabBarController: UITabBarController {
   override func viewDidLoad() {
     super.viewDidLoad()
 
+    let mixedFeed = MixedFeedViewController()
+    mixedFeed.tabBarItem = UITabBarItem(
+      title: "Mixed",
+      image: UIImage(systemName: "square.stack"),
+      selectedImage: UIImage(systemName: "square.stack.fill")
+    )
+
     let imageFeed = ImageFeedViewController()
     imageFeed.tabBarItem = UITabBarItem(
       title: "Images",
@@ -19,6 +26,6 @@ class TabBarController: UITabBarController {
       selectedImage: UIImage(systemName: "video.fill")
     )
 
-    viewControllers = [imageFeed, videoFeed]
+    viewControllers = [mixedFeed, imageFeed, videoFeed]
   }
 }
