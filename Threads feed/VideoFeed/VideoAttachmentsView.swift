@@ -11,9 +11,10 @@ final class VideoPlayerContext {
   init(url: URL, muted: Bool) {
     self.url = url
 
-    let item = AVPlayerItem(url: url)
+    let item = VideoCacheClient.shared.makePlayerItem(for: url)
     let queuePlayer = AVQueuePlayer()
     queuePlayer.isMuted = muted
+    queuePlayer.automaticallyWaitsToMinimizeStalling = false
 
     self.player = queuePlayer
     self.looper = AVPlayerLooper(player: queuePlayer, templateItem: item)

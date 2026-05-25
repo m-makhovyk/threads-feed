@@ -10,6 +10,7 @@
 		038B76132F7D05E700970515 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 03DF22802F7C56CB00C04237 /* SnapKit */; };
 		038B76142F7D05E700970515 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 03DF22822F7C56CB00C04237 /* Nuke */; };
 		038B76152F7D05E700970515 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 03DF22832F7C56CB00C04237 /* NukeUI */; };
+		03CAC0E12F85000000000003 /* CachingPlayerItem in Frameworks */ = {isa = PBXBuildFile; productRef = 03CAC0E12F85000000000002 /* CachingPlayerItem */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +46,7 @@
 				038B76152F7D05E700970515 /* NukeUI in Frameworks */,
 				038B76142F7D05E700970515 /* Nuke in Frameworks */,
 				038B76132F7D05E700970515 /* SnapKit in Frameworks */,
+				03CAC0E12F85000000000003 /* CachingPlayerItem in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +92,7 @@
 				03DF22802F7C56CB00C04237 /* SnapKit */,
 				03DF22822F7C56CB00C04237 /* Nuke */,
 				03DF22832F7C56CB00C04237 /* NukeUI */,
+				03CAC0E12F85000000000002 /* CachingPlayerItem */,
 			);
 			productName = "Threads feed";
 			productReference = 03DF22682F7C56CA00C04237 /* Threads feed.app */;
@@ -122,6 +125,7 @@
 			packageReferences = (
 				03DF22812F7C56CB00C04237 /* XCRemoteSwiftPackageReference "SnapKit" */,
 				03DF22842F7C56CB00C04237 /* XCRemoteSwiftPackageReference "Nuke" */,
+				03CAC0E12F85000000000001 /* XCRemoteSwiftPackageReference "CachingPlayerItem" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 03DF22692F7C56CA00C04237 /* Products */;
@@ -359,6 +363,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		03CAC0E12F85000000000001 /* XCRemoteSwiftPackageReference "CachingPlayerItem" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sukov/CachingPlayerItem.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.0;
+			};
+		};
 		03DF22812F7C56CB00C04237 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
@@ -378,6 +390,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		03CAC0E12F85000000000002 /* CachingPlayerItem */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 03CAC0E12F85000000000001 /* XCRemoteSwiftPackageReference "CachingPlayerItem" */;
+			productName = CachingPlayerItem;
+		};
 		03DF22802F7C56CB00C04237 /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 03DF22812F7C56CB00C04237 /* XCRemoteSwiftPackageReference "SnapKit" */;
