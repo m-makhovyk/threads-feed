@@ -41,6 +41,10 @@ class MixedPostCell: UICollectionViewCell {
     attachmentsView.reset()
   }
 
+  func setActive(_ active: Bool) {
+    attachmentsView.setActive(active)
+  }
+
   private func setupViews() {
     avatarImageView.contentMode = .scaleAspectFill
     avatarImageView.clipsToBounds = true

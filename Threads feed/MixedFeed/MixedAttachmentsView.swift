@@ -7,6 +7,8 @@ class MixedAttachmentsView: UIView {
 
   private var collectionView: UICollectionView!
   private var attachments: [MixedAttachment] = []
+  private var isActive = false
+  private var currentActiveIndex = 0
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -52,6 +54,7 @@ class MixedAttachmentsView: UIView {
 
   func configure(with attachments: [MixedAttachment]) {
     self.attachments = attachments
+    currentActiveIndex = 0
     collectionView.reloadData()
     collectionView.contentOffset = CGPoint(x: -LayoutConstants.contentLeadingInset, y: 0)
     collectionView.isScrollEnabled = attachments.count > 1
@@ -59,9 +62,48 @@ class MixedAttachmentsView: UIView {
 
   func reset() {
     attachments = []
+    isActive = false
+    currentActiveIndex = 0
     collectionView.reloadData()
     collectionView.contentOffset = CGPoint(x: -LayoutConstants.contentLeadingInset, y: 0)
     collectionView.isScrollEnabled = false
+  }
+
+  func setActive(_ active: Bool) {
+    isActive = active
+    recalculateActiveIndex()
+    applyPlaybackState()
+  }
+
+  private func recalculateActiveIndex() {
+    guard attachments.count > 1 else {
+      currentActiveIndex = 0
+      return
+    }
+    let centerX = collectionView.contentOffset.x + collectionView.bounds.width / 2
+    var bestIndex = 0
+    var bestDistance: CGFloat = .greatestFiniteMagnitude
+    for index in attachments.indices {
+      let indexPath = IndexPath(item: index, section: 0)
+      guard let frame = collectionView.layoutAttributesForItem(at: indexPath)?.frame else { continue }
+      let distance = abs(frame.midX - centerX)
+      if distance < bestDistance {
+        bestDistance = distance
+        bestIndex = index
+      }
+    }
+    currentActiveIndex = bestIndex
+  }
+
+  private func applyPlaybackState() {
+    for indexPath in collectionView.indexPathsForVisibleItems {
+      guard let cell = collectionView.cellForItem(at: indexPath) as? MixedVideoPageCell else { continue }
+      if isActive && indexPath.item == currentActiveIndex {
+        cell.play()
+      } else {
+        cell.pause()
+      }
+    }
   }
 }
 
@@ -94,6 +136,9 @@ extension MixedAttachmentsView: UICollectionViewDataSource {
         for: indexPath
       ) as! MixedVideoPageCell
       cell.configure(with: attachment.url)
+      if isActive && indexPath.item == currentActiveIndex {
+        cell.play()
+      }
       return cell
     }
   }
@@ -114,6 +159,15 @@ extension MixedAttachmentsView: UICollectionViewDelegateFlowLayout {
       return CGSize(width: availableWidth, height: height)
     }
     return CGSize(width: LayoutConstants.attachmentImageWidth, height: height)
+  }
+
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    guard isActive else { return }
+    let previousIndex = currentActiveIndex
+    recalculateActiveIndex()
+    if currentActiveIndex != previousIndex {
+      applyPlaybackState()
+    }
   }
 }
 
@@ -196,6 +250,14 @@ private class MixedVideoPageCell: UICollectionViewCell {
     let context = VideoPlayerContext(url: url, muted: true)
     playerContext = context
     playerView.playerLayer.player = context.player
+  }
+
+  func play() {
+    playerContext?.play()
+  }
+
+  func pause() {
+    playerContext?.pause()
   }
 
   override func prepareForReuse() {
