@@ -8,7 +8,7 @@ class MixedFeedViewController: UIViewController {
     view.backgroundColor = .systemBackground
 
     let label = UILabel()
-    label.text = "Mixed"
+    label.text = "Mixed (\(MockData.mixedPosts.count) posts)"
     label.font = .preferredFont(forTextStyle: .largeTitle)
     label.textColor = .secondaryLabel
     view.addSubview(label)
